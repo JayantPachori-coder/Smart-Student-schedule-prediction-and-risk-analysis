@@ -1,5 +1,6 @@
-🎓 Smart Assignment & Risk Prediction System
-📌 Project Overview
+# 🎓 Smart Assignment & Risk Prediction System
+
+# 📌 Project Overview
 
 This project is a full-stack academic management system designed to streamline assignment handling, student performance tracking, and intelligent risk prediction.
 
@@ -10,8 +11,8 @@ It provides two main interfaces:
 
 Additionally, the system integrates a machine learning-based risk prediction model to identify students who may require attention.
 
-🚀 Key Features
-👨‍🎓 Student Panel
+# 🚀 Key Features
+**👨‍🎓 Student Panel
 🔐 Secure Login & Registration (OTP-based authentication)
 📚 View Assigned Tasks
 📤 Submit Assignments
@@ -26,21 +27,23 @@ Additionally, the system integrates a machine learning-based risk prediction mod
 ⚠️ Access Risk Prediction Dashboard
 📧 Automated Email Notifications
 🧠 Intelligent Risk Prediction System
-
+**
 The system uses a Machine Learning model (XGBoost) to predict student risk levels.
 
-🔍 Inputs
+# 🔍 Inputs
 Assignment completion rate
 Performance scores
 Difficulty level
 ⚙️ Processing Logic
 Data preprocessing using NumPy and Pandas
 Prediction using a trained XGBoost Classifier
-Model explainability using SHAP values
-🎯 Output
+
+
+# 🎯 Output
 Risk Level: Low / Medium / High
 Explanation of contributing factors
-🏗️ Tech Stack
+
+# 🏗️ Tech Stack
 Frontend
 React.js
 Modern CSS (Dashboard UI)
@@ -52,8 +55,8 @@ MongoDB
 Machine Learning
 Python
 XGBoost
-SHAP
-🔄 System Workflow
+
+# 🔄 System Workflow
 🔑 User logs in
 📝 Admin assigns tasks
 📤 User submits assignments
@@ -62,13 +65,15 @@ SHAP
 👨‍💼 Admin reviews insights and takes action
 🎥 Demo Flow (Presentation Guide)
 👨‍🎓 Student Side
-Login as a student
+
+# Login as a student
 View assigned tasks
 Submit an assignment
 Check performance and feedback
 ➡️ Switch to Admin Panel
 👨‍💼 Admin Side
-Login as admin
+
+# Login as admin
 Create and assign tasks
 View student submissions
 Analyze risk dashboard
@@ -83,7 +88,7 @@ Analyze risk dashboard
 
 Ensure fair, transparent, and secure online assessments.
 
-📌 Conclusion
+# 📌 Conclusion
 
 This project combines:
 
