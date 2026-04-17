@@ -3,7 +3,7 @@ import {
   getSubmissions,
   getByAssignment,
   evaluateSubmission,
-} from "../controllers/submissionController.js";
+} from "../controllers/SubmissionController.js";
 
 const router = express.Router();
 
