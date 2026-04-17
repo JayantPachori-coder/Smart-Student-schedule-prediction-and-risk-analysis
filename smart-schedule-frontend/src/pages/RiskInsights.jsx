@@ -30,7 +30,6 @@ function RiskInsights() {
     consistency_score: ""
   });
 
-  const [history, setHistory] = useState([]); // ✅ FIXED
   const [alertMsg, setAlertMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -43,23 +42,16 @@ function RiskInsights() {
   };
 
   // =========================
-  // FETCH HISTORY (SAFE)
+  // FETCH HISTORY (NO STATE → FIX ESLINT)
   // =========================
   const fetchHistory = useCallback(async () => {
-    if (!user?._id) {
-      console.log("No user ID found, skipping history fetch");
-      return;
-    }
+    if (!user?._id) return;
 
     try {
-      const res = await axios.get(
-        `${BASE_API}/risk/history/${user._id}`
-      );
-
-      setHistory(Array.isArray(res.data) ? res.data : []);
+      await axios.get(`${BASE_API}/risk/history/${user._id}`);
+      // history intentionally NOT stored to avoid unused-vars build error
     } catch (err) {
       console.log("History error:", err.message);
-      setHistory([]); // ✅ prevent .map crash
     }
   }, [user?._id]);
 
@@ -68,7 +60,7 @@ function RiskInsights() {
   }, [fetchHistory]);
 
   // =========================
-  // SUBMIT
+  // SUBMIT HANDLER
   // =========================
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -93,6 +85,7 @@ function RiskInsights() {
 
       const result = res.data;
 
+      // alert logic
       if (result.risk_level === "High Risk") {
         setAlertMsg("⚠️ High Risk!");
       } else if (result.risk_level === "Medium Risk") {
@@ -109,6 +102,7 @@ function RiskInsights() {
 
     } catch (err) {
       console.log("Prediction error:", err?.response?.data || err.message);
+
       setLoading(false);
       alert("Backend error (check server logs)");
     }
