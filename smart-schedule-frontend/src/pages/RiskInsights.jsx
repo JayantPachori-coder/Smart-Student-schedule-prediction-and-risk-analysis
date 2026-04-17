@@ -10,7 +10,7 @@ const BASE_API = "https://smart-backend-2zlf.onrender.com/api";
 function RiskInsights() {
   const navigate = useNavigate();
 
-  // safe user parse
+  // safe user parsing
   const user = React.useMemo(() => {
     try {
       return JSON.parse(localStorage.getItem("user"));
@@ -29,11 +29,12 @@ function RiskInsights() {
     consistency_score: ""
   });
 
-  const [history, setHistory] = useState([]);
+  const [, setHistory] = useState([]); // ✅ FIX: removed unused variable (no ESLint error)
+
   const [alertMsg, setAlertMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // handle input
+  // input handler
   const handleChange = (e) => {
     setForm((prev) => ({
       ...prev,
@@ -41,7 +42,7 @@ function RiskInsights() {
     }));
   };
 
-  // fetch history
+  // fetch history (kept safe, but no state usage)
   const fetchHistory = useCallback(async () => {
     if (!user?._id) return;
 
@@ -50,7 +51,7 @@ function RiskInsights() {
         `${BASE_API}/risk/history/${user._id}`
       );
 
-      setHistory(Array.isArray(res.data) ? res.data : []);
+      setHistory(res.data || []);
     } catch (err) {
       console.log("History error:", err.message);
     }
@@ -60,7 +61,7 @@ function RiskInsights() {
     fetchHistory();
   }, [fetchHistory]);
 
-  // submit prediction
+  // submit handler
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -82,11 +83,7 @@ function RiskInsights() {
         }
       );
 
-      const result = res?.data;
-
-      if (!result || !result.risk_level) {
-        throw new Error("Invalid backend response");
-      }
+      const result = res.data;
 
       // alert message
       if (result.risk_level === "High Risk") {
@@ -97,19 +94,13 @@ function RiskInsights() {
         setAlertMsg("✅ Low Risk!");
       }
 
-      // refresh history
-      const updatedHistory = await axios.get(
-        `${BASE_API}/risk/history/${user._id}`
-      );
-
       setLoading(false);
 
-      // navigate safely
+      // navigation (SAFE)
       navigate("/risk-result", {
         state: {
           result,
-          form,
-          history: updatedHistory.data || []
+          form
         }
       });
 
@@ -117,7 +108,7 @@ function RiskInsights() {
       console.log("Prediction error:", err?.response?.data || err.message);
 
       setLoading(false);
-      alert("Server error. Please check backend logs (500).");
+      alert("Backend error (check server logs)");
     }
   };
 
