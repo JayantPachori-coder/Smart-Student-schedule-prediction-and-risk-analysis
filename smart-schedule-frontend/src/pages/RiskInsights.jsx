@@ -1,9 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import {
-  LineChart, Line, XAxis, YAxis, Tooltip,
-  PieChart, Pie, Cell
-} from "recharts";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Circles } from "react-loader-spinner";
