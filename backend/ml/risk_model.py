@@ -3,75 +3,82 @@ import json
 import pandas as pd
 import numpy as np
 import os
-from xgboost import XGBClassifier
 
 # =========================
 # SAFE INPUT
 # =========================
 try:
     input_data = json.loads(sys.argv[1])
-except Exception as e:
+except Exception:
     print(json.dumps({"error": "Invalid JSON input"}))
     sys.exit(1)
 
 input_data.pop("userId", None)
 
 # =========================
-# LOAD DATA SAFE
+# LOAD DATA (optional - kept for schema reference only)
 # =========================
 try:
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     data_path = os.path.join(BASE_DIR, "risk_train.csv")
     df = pd.read_csv(data_path)
-except Exception as e:
+    feature_cols = df.drop("risk", axis=1).columns
+except Exception:
     print(json.dumps({"error": "CSV load failed"}))
     sys.exit(1)
 
 # =========================
-# SPLIT DATA
-# =========================
-X = df.drop("risk", axis=1)
-y = df["risk"]
-
-# =========================
-# TRAIN MODEL
-# =========================
-try:
-    model = XGBClassifier(
-        n_estimators=100,
-        max_depth=4,
-        eval_metric="mlogloss"
-    )
-    model.fit(X, y)
-except Exception as e:
-    print(json.dumps({"error": "Model training failed"}))
-    sys.exit(1)
-
-# =========================
-# INPUT ALIGNMENT (CRITICAL FIX)
+# INPUT ALIGNMENT
 # =========================
 user_df = pd.DataFrame([input_data])
 
-for col in X.columns:
+for col in feature_cols:
     if col not in user_df.columns:
         user_df[col] = 0
 
-user_df = user_df[X.columns]
+user_df = user_df[feature_cols]
 user_df = user_df.apply(pd.to_numeric, errors="coerce").fillna(0)
 
-# =========================
-# PREDICTION (SAFE)
-# =========================
-try:
-    prediction = int(model.predict(user_df)[0])
-    prob = float(np.max(model.predict_proba(user_df)))
-except Exception as e:
-    print(json.dumps({"error": "Prediction failed"}))
-    sys.exit(1)
+row = user_df.iloc[0]
 
 # =========================
-# LABELS
+# HEURISTIC + GREEDY SCORING MODEL
 # =========================
+score = 0
+
+attendance = float(row.get("attendance", 0))
+avg_score = float(row.get("avg_score", 0))
+missed = float(row.get("missed_deadlines", 0))
+study = float(row.get("study_hours", 0))
+
+# ---- GREEDY CONTRIBUTIONS ----
+# each feature independently adds risk (no training, direct rules)
+
+if attendance < 60:
+    score += (60 - attendance) * 0.4   # stronger penalty for low attendance
+
+if avg_score < 50:
+    score += (50 - avg_score) * 0.5
+
+if missed > 3:
+    score += (missed - 3) * 8
+
+if study < 3:
+    score += (3 - study) * 10
+
+# normalize score
+score = max(0, score)
+
+# =========================
+# RISK LEVEL (RULE THRESHOLDING)
+# =========================
+if score < 20:
+    prediction = 0  # Low
+elif score < 50:
+    prediction = 1  # Medium
+else:
+    prediction = 2  # High
+
 risk_map = {
     0: "Low Risk",
     1: "Medium Risk",
@@ -79,13 +86,13 @@ risk_map = {
 }
 
 # =========================
-# INSIGHTS
+# "CONFIDENCE" (heuristic probability-like score)
 # =========================
-attendance = float(input_data.get("attendance", 0))
-avg_score = float(input_data.get("avg_score", 0))
-missed = float(input_data.get("missed_deadlines", 0))
-study = float(input_data.get("study_hours", 0))
+confidence = min(1.0, score / 100)  # clamp between 0–1
 
+# =========================
+# INSIGHTS + RECOMMENDATIONS (same logic as before)
+# =========================
 insights = []
 recommendations = []
 
@@ -106,14 +113,15 @@ if study < 3:
     recommendations.append("Increase study time")
 
 # =========================
-# FINAL OUTPUT (VERY IMPORTANT)
+# FINAL OUTPUT
 # =========================
 result = {
     "risk_level": risk_map.get(prediction, "Unknown"),
-    "confidence": round(prob, 4),
+    "confidence": round(confidence, 4),
+    "risk_score": round(score, 2),
     "insights": insights,
     "recommendations": recommendations
 }
 
 print(json.dumps(result))
-sys.stdout.flush()   # 🔥 CRITICAL FIX FOR NODE
+sys.stdout.flush()
