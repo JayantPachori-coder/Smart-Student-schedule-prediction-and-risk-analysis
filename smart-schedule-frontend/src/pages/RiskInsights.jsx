@@ -5,10 +5,9 @@ import { useNavigate } from "react-router-dom";
 import { Circles } from "react-loader-spinner";
 import "./RiskInsights.css";
 
-const API = "https://smart-backend-2zlf.onrender.com/api/risk/history/${user._id}";
+const BASE_API = "https://smart-backend-2zlf.onrender.com/api";
 
 function RiskInsights() {
-
   const user = JSON.parse(localStorage.getItem("user"));
   const navigate = useNavigate();
 
@@ -30,11 +29,14 @@ function RiskInsights() {
     setForm({ ...form, [e.target.name]: Number(e.target.value) });
   };
 
+  // ✅ FIXED HISTORY API CALL
   const fetchHistory = useCallback(async () => {
     if (!user?._id) return;
 
     try {
-      const res = await axios.get(`${API}/risk/history/${user._id}`);
+      const res = await axios.get(
+        `${BASE_API}/risk/history/${user._id}`
+      );
       setHistory(res.data || []);
     } catch (err) {
       console.log(err);
@@ -45,15 +47,19 @@ function RiskInsights() {
     fetchHistory();
   }, [fetchHistory]);
 
+  // ✅ FIXED PREDICTION API
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const res = await axios.post(`${API}/risk/predict-risk`, {
-        ...form,
-        userId: user?._id
-      });
+      const res = await axios.post(
+        `${BASE_API}/risk/predict-risk`,
+        {
+          ...form,
+          userId: user?._id
+        }
+      );
 
       generateAlert(res.data.risk_level);
 
