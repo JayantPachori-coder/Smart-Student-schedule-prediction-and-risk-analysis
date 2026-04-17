@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { Circles } from "react-loader-spinner";
 import "./RiskInsights.css";
 
+const API = "https://smart-backend-2zlf.onrender.com/api";
+
 function RiskInsights() {
 
   const user = JSON.parse(localStorage.getItem("user"));
@@ -20,7 +22,6 @@ function RiskInsights() {
     consistency_score: ""
   });
 
-  // ❌ REMOVED result state (not used in UI)
   const [history, setHistory] = useState([]);
   const [alert, setAlert] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,9 +34,7 @@ function RiskInsights() {
     if (!user?._id) return;
 
     try {
-      const res = await axios.get(
-        `http://localhost:5000/api/risk/history/${user._id}`
-      );
+      const res = await axios.get(`${API}/risk/history/${user._id}`);
       setHistory(res.data || []);
     } catch (err) {
       console.log(err);
@@ -46,22 +45,15 @@ function RiskInsights() {
     fetchHistory();
   }, [fetchHistory]);
 
-  // ======================
-  // ANALYZE
-  // ======================
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     setLoading(true);
 
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/risk/predict-risk",
-        {
-          ...form,
-          userId: user?._id
-        }
-      );
+      const res = await axios.post(`${API}/risk/predict-risk`, {
+        ...form,
+        userId: user?._id
+      });
 
       generateAlert(res.data.risk_level);
 
@@ -101,7 +93,6 @@ function RiskInsights() {
 
       {alert && <div className="alert">{alert}</div>}
 
-      {/* FORM */}
       <form className="form" onSubmit={handleSubmit}>
         {Object.keys(form).map(key => (
           <input
@@ -114,7 +105,6 @@ function RiskInsights() {
         <button type="submit">Analyze</button>
       </form>
 
-      {/* LOADING */}
       {loading && (
         <div className="loading-box">
           <Circles color="#00f2ff" height={80} width={80} />
