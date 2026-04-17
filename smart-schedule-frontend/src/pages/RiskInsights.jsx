@@ -62,6 +62,8 @@ function RiskInsights() {
   // ================= ANALYZE =================
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("ANALYZE CLICKED");
+console.log("NAVIGATING...");
 
     if (!user?._id) {
       alert("User not found. Please login again.");
