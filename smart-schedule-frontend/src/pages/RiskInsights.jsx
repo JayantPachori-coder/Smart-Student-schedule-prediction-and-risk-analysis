@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { Circles } from "react-loader-spinner";
 import "./RiskInsights.css";
 
-const API = "https://smart-backend-2zlf.onrender.com/api";
+const API = "https://smart-backend-2zlf.onrender.com/api/risk/history/${user._id}";
 
 function RiskInsights() {
 
