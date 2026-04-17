@@ -10,7 +10,7 @@ const BASE_API = "https://smart-backend-2zlf.onrender.com/api";
 function RiskInsights() {
   const navigate = useNavigate();
 
-  // ✅ safer parsing
+  // safe user parse
   const user = React.useMemo(() => {
     try {
       return JSON.parse(localStorage.getItem("user"));
@@ -30,9 +30,10 @@ function RiskInsights() {
   });
 
   const [history, setHistory] = useState([]);
-  const [alert, setAlert] = useState("");
+  const [alertMsg, setAlertMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // handle input
   const handleChange = (e) => {
     setForm((prev) => ({
       ...prev,
@@ -40,7 +41,7 @@ function RiskInsights() {
     }));
   };
 
-  // ================= HISTORY =================
+  // fetch history
   const fetchHistory = useCallback(async () => {
     if (!user?._id) return;
 
@@ -59,11 +60,11 @@ function RiskInsights() {
     fetchHistory();
   }, [fetchHistory]);
 
-  // ================= ANALYZE =================
+  // submit prediction
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     console.log("ANALYZE CLICKED");
-console.log("NAVIGATING...");
 
     if (!user?._id) {
       alert("User not found. Please login again.");
@@ -81,31 +82,42 @@ console.log("NAVIGATING...");
         }
       );
 
-      const result = res.data;
+      const result = res?.data;
 
-      // alert
-      if (result.risk_level === "High Risk") setAlert("⚠️ High Risk!");
-      else if (result.risk_level === "Medium Risk") setAlert("⚡ Medium Risk");
-      else setAlert("✅ Low Risk");
+      if (!result || !result.risk_level) {
+        throw new Error("Invalid backend response");
+      }
 
-      // update history before navigation (optional safety)
-      await fetchHistory();
+      // alert message
+      if (result.risk_level === "High Risk") {
+        setAlertMsg("⚠️ High Risk!");
+      } else if (result.risk_level === "Medium Risk") {
+        setAlertMsg("⚡ Medium Risk!");
+      } else {
+        setAlertMsg("✅ Low Risk!");
+      }
+
+      // refresh history
+      const updatedHistory = await axios.get(
+        `${BASE_API}/risk/history/${user._id}`
+      );
 
       setLoading(false);
 
-      // ✅ immediate navigation (NO timeout needed)
+      // navigate safely
       navigate("/risk-result", {
         state: {
           result,
           form,
-          history
+          history: updatedHistory.data || []
         }
       });
 
     } catch (err) {
-      console.log("Prediction error:", err);
+      console.log("Prediction error:", err?.response?.data || err.message);
+
       setLoading(false);
-      alert("Prediction failed. Check backend.");
+      alert("Server error. Please check backend logs (500).");
     }
   };
 
@@ -116,7 +128,7 @@ console.log("NAVIGATING...");
         AI Risk Dashboard
       </motion.h1>
 
-      {alert && <div className="alert">{alert}</div>}
+      {alertMsg && <div className="alert">{alertMsg}</div>}
 
       <form className="form" onSubmit={handleSubmit}>
         {Object.keys(form).map((key) => (
@@ -124,9 +136,11 @@ console.log("NAVIGATING...");
             key={key}
             name={key}
             placeholder={key}
+            type="number"
             onChange={handleChange}
           />
         ))}
+
         <button type="submit" disabled={loading}>
           Analyze
         </button>
