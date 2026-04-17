@@ -1,0 +1,246 @@
+/* =========================
+   BLACK FOREST PREMIUM UI
+   ========================= */
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", sans-serif;
+  background: radial-gradient(circle at top, #06130d, #010504 60%, #000000);
+  color: #dfffee;
+}
+
+/* PAGE */
+.view-container {
+  padding: 30px;
+  min-height: 100vh;
+}
+
+/* TITLE */
+.view-container h2 {
+  font-size: 30px;
+  margin-bottom: 20px;
+  color: #7dffbf;
+  text-shadow: 0 0 25px rgba(0, 255, 140, 0.35);
+  letter-spacing: 1px;
+}
+
+/* FILTER BAR */
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+}
+
+.filter-bar button {
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 255, 140, 0.25);
+  background: rgba(0, 0, 0, 0.35);
+  color: #bfffe0;
+  cursor: pointer;
+  transition: 0.3s;
+  backdrop-filter: blur(12px);
+}
+
+.filter-bar button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 18px rgba(0, 255, 140, 0.35);
+  border-color: #00ff9d;
+}
+
+.filter-bar .active {
+  background: linear-gradient(135deg, #00ff9d, #005c3a);
+  color: black;
+  font-weight: bold;
+}
+
+/* GRID */
+.assignments-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 22px;
+}
+
+/* CARD */
+.assignment-card {
+  position: relative;
+  background: rgba(10, 25, 18, 0.55);
+  border: 1px solid rgba(0, 255, 140, 0.18);
+  border-radius: 18px;
+  padding: 18px;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 0 25px rgba(0, 255, 140, 0.08);
+  transition: 0.35s ease;
+  overflow: hidden;
+}
+
+.assignment-card::before {
+  content: "";
+  position: absolute;
+  top: -60%;
+  left: -60%;
+  width: 220%;
+  height: 220%;
+  background: radial-gradient(
+    circle,
+    rgba(0, 255, 140, 0.08),
+    transparent 60%
+  );
+  transform: rotate(25deg);
+}
+
+.assignment-card:hover {
+  transform: translateY(-8px) scale(1.01);
+  box-shadow: 0 0 30px rgba(0, 255, 140, 0.25);
+  border-color: #00ff9d;
+}
+
+/* TEXT */
+.assignment-card h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #aaffdd;
+}
+
+.assignment-card p {
+  font-size: 14px;
+  color: #b7f7d8;
+}
+
+/* META */
+.meta {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #7dffbf;
+}
+
+/* ACTIONS */
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.actions button {
+  flex: 1;
+  padding: 9px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+/* EDIT */
+.actions button:first-child {
+  background: rgba(0, 255, 140, 0.15);
+  color: #00ff9d;
+  border: 1px solid #00ff9d;
+}
+
+.actions button:first-child:hover {
+  background: #00ff9d;
+  color: black;
+}
+
+/* DELETE */
+.actions button:last-child {
+  background: rgba(255, 60, 60, 0.15);
+  color: #ff6b6b;
+  border: 1px solid #ff6b6b;
+}
+
+.actions button:last-child:hover {
+  background: #ff3c3c;
+  color: white;
+}
+
+/* MODAL BACKDROP */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(10px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+/* MODAL BOX */
+.modal-content {
+  width: 420px;
+  background: rgba(5, 15, 10, 0.95);
+  border: 1px solid #00ff9d;
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: 0 0 35px rgba(0, 255, 140, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: pop 0.25s ease;
+}
+
+@keyframes pop {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* INPUTS */
+.modal-content input,
+.modal-content textarea {
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 255, 140, 0.3);
+  background: rgba(0, 0, 0, 0.4);
+  color: #dfffee;
+  outline: none;
+}
+
+/* MODAL BUTTONS */
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.modal-actions button {
+  flex: 1;
+  padding: 10px;
+  border-radius: 12px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.modal-actions button:first-child {
+  background: #00ff9d;
+  color: black;
+}
+
+.modal-actions button:last-child {
+  background: #ff4d4d;
+  color: white;
+}
+
+/* EMPTY TEXT */
+.view-container p {
+  color: #7dffbf;
+}
+.assignment-card {
+  position: relative;
+  z-index: 1;
+}
+
+/* THIS IS THE REAL FIX */
+.assignment-card::before {
+  pointer-events: none;   /* 🔥 allows clicks to pass through */
+  z-index: 0;
+}

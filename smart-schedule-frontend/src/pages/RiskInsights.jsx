@@ -1,0 +1,134 @@
+import React, { useState, useEffect, useCallback } from "react";
+import axios from "axios";
+import {
+  LineChart, Line, XAxis, YAxis, Tooltip,
+  PieChart, Pie, Cell
+} from "recharts";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { Circles } from "react-loader-spinner";
+import "./RiskInsights.css";
+
+function RiskInsights() {
+
+  const user = JSON.parse(localStorage.getItem("user"));
+  const navigate = useNavigate();
+
+  const [form, setForm] = useState({
+    attendance: "",
+    avg_score: "",
+    assignments_completed: "",
+    study_hours: "",
+    missed_deadlines: "",
+    login_frequency: "",
+    consistency_score: ""
+  });
+
+  const [result, setResult] = useState(null);
+  const [history, setHistory] = useState([]);
+  const [alert, setAlert] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: Number(e.target.value) });
+  };
+
+  const fetchHistory = useCallback(async () => {
+    if (!user?._id) return;
+
+    const res = await axios.get(
+      `http://localhost:5000/api/risk/history/${user._id}`
+    );
+
+    setHistory(res.data || []);
+  }, [user]);
+
+  useEffect(() => {
+    fetchHistory();
+  }, [fetchHistory]);
+
+  // ======================
+  // ANALYZE (MAIN FIX)
+  // ======================
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    setLoading(true);
+    setResult(null);
+
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/api/risk/predict-risk",
+        {
+          ...form,
+          userId: user?._id
+        }
+      );
+
+      setResult(res.data);
+      generateAlert(res.data.risk_level);
+
+      // wait for smooth UX
+      setTimeout(() => {
+        setLoading(false);
+
+        // 👉 OPEN NEW PAGE WITH ALL DATA
+        navigate("/risk-result", {
+          state: {
+            result: res.data,
+            form,
+            history
+          }
+        });
+
+      }, 1200);
+
+      fetchHistory();
+
+    } catch (err) {
+      console.log(err);
+      setLoading(false);
+    }
+  };
+
+  const generateAlert = (risk) => {
+    if (risk === "High Risk") setAlert("⚠️ High Risk!");
+    else if (risk === "Medium Risk") setAlert("⚡ Medium Risk");
+    else setAlert("✅ Low Risk");
+  };
+
+  return (
+    <div className="risk-container">
+
+      <motion.h1 className="title">
+        AI Risk Dashboard
+      </motion.h1>
+
+      {alert && <div className="alert">{alert}</div>}
+
+      {/* FORM */}
+      <form className="form" onSubmit={handleSubmit}>
+        {Object.keys(form).map(key => (
+          <input
+            key={key}
+            name={key}
+            placeholder={key}
+            onChange={handleChange}
+          />
+        ))}
+        <button type="submit">Analyze</button>
+      </form>
+
+      {/* 🔥 LOADING ANIMATION */}
+      {loading && (
+        <div className="loading-box">
+          <Circles color="#00f2ff" height={80} width={80} />
+          <p>Analyzing AI Risk Model...</p>
+        </div>
+      )}
+
+    </div>
+  );
+}
+
+export default RiskInsights;

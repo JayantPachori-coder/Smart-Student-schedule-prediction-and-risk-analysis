@@ -1,0 +1,283 @@
+/* =========================
+   BACKGROUND (DARK MODE DEFAULT)
+========================= */
+.dashboard-modern {
+  min-height: 100vh;
+  padding: 20px;
+  background: radial-gradient(circle at top, #0f172a, #020617);
+  color: #fff;
+  font-family: "Poppins", sans-serif;
+  transition: all 0.3s ease;
+}
+
+/* =========================
+   LIGHT MODE FIX (IMPORTANT)
+========================= */
+.dashboard-modern.light {
+  background: #f5f7ff;
+  color: #0f172a;
+}
+
+/* =========================
+   GLASS CARDS
+========================= */
+.glass-card,
+.kpi-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(18px);
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  transition: 0.3s ease;
+}
+
+.dashboard-modern.light .glass-card,
+.dashboard-modern.light .kpi-card {
+  background: rgba(255, 255, 255, 0.85);
+  color: #0f172a;
+}
+
+/* hover */
+.glass-card:hover,
+.kpi-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 40px rgba(0, 242, 255, 0.18);
+}
+
+/* =========================
+   HEADER
+========================= */
+.header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  background: linear-gradient(90deg, #00f2ff, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* =========================
+   GRID
+========================= */
+.kpi-grid,
+.content-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.kpi-grid {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  margin-top: 20px;
+}
+
+.content-grid {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  margin-top: 20px;
+}
+
+/* =========================
+   CHIPS
+========================= */
+.chip {
+  display: inline-block;
+  margin: 6px 0;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 13px;
+}
+
+.dashboard-modern.light .chip {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.chip.green {
+  background: rgba(0, 255, 128, 0.15);
+  color: #00ff9d;
+}
+
+/* =========================
+   BUTTONS
+========================= */
+.btn {
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: none;
+  background: #00f2ff;
+  color: #000;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.btn:hover {
+  transform: scale(1.05);
+}
+
+.btn.secondary {
+  background: transparent;
+  border: 1px solid #00f2ff;
+  color: #00f2ff;
+}
+
+/* =========================
+   RISK BADGES (FIXED)
+========================= */
+.risk-badge {
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: inline-block;
+}
+
+/* LOW */
+.low-risk {
+  background: rgba(0, 255, 150, 0.15);
+  color: #00ff9d;
+}
+
+/* MEDIUM */
+.medium-risk {
+  background: rgba(255, 196, 0, 0.15);
+  color: #ffc400;
+}
+
+/* HIGH */
+.high-risk {
+  background: rgba(255, 0, 0, 0.15);
+  color: #ff3b3b;
+  box-shadow: 0 0 18px rgba(255, 0, 0, 0.4);
+  animation: pulseRisk 1.5s infinite;
+}
+
+/* =========================
+   ALERT (HIGH RISK)
+========================= */
+.risk-alert {
+  background: rgba(255, 0, 0, 0.12);
+  border: 1px solid rgba(255, 0, 0, 0.4);
+  color: #ff3b3b;
+  padding: 12px 16px;
+  border-radius: 12px;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+/* =========================
+   ANIMATION
+========================= */
+@keyframes pulseRisk {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+/* =========================
+   CHAT FLOAT BUTTON
+========================= */
+.chat-fab {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #00f2ff;
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  font-size: 22px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+}
+
+/* =========================
+   CHAT PANEL
+========================= */
+.chat-panel {
+  position: fixed;
+  bottom: 90px;
+  right: 20px;
+  width: 320px;
+  height: 420px;
+  background: rgba(0,0,0,0.9);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* LIGHT MODE CHAT FIX */
+.dashboard-modern.light .chat-panel {
+  background: white;
+  color: black;
+}
+
+/* =========================
+   CHAT HEADER
+========================= */
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  background: #00f2ff;
+  color: black;
+  font-weight: 600;
+}
+
+/* =========================
+   CHAT BODY
+========================= */
+.chat-body {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+}
+
+/* USER MESSAGE */
+.chat-msg.user {
+  text-align: right;
+  background: #00f2ff;
+  padding: 6px;
+  margin: 5px;
+  border-radius: 6px;
+  color: black;
+}
+
+/* BOT MESSAGE */
+.chat-msg.bot {
+  background: rgba(255,255,255,0.1);
+  padding: 6px;
+  margin: 5px;
+  border-radius: 6px;
+}
+
+/* LIGHT MODE BOT FIX */
+.dashboard-modern.light .chat-msg.bot {
+  background: rgba(0,0,0,0.08);
+}
+
+/* =========================
+   CHAT INPUT
+========================= */
+.chat-input {
+  display: flex;
+  padding: 5px;
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  outline: none;
+}
+
+.chat-input button {
+  margin-left: 5px;
+  background: #00f2ff;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+}

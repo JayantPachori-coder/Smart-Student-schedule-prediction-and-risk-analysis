@@ -1,0 +1,101 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
+
+.blur-bg {
+  height: 100vh;
+  background: url("/public/images/login.png") no-repeat center center/cover;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(8px);
+}
+
+.login-container {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.3);
+  text-align: center;
+  width: 300px;
+  color: white;
+}
+
+.login-container input {
+  width: 90%;
+  padding: 10px;
+  margin: 10px 0;
+  border: none;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.login-container button {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.login-container button:first-of-type {
+  background-color: #28a745;
+  color: white;
+}
+
+.login-btn {
+  background-color: #28a745;
+  color: white;
+  font-weight: bold;
+}
+
+.login-btn:hover {
+  background-color: #1e7e34;
+}
+
+/* Divider */
+.divider {
+  margin: 15px 0;
+  position: relative;
+  text-align: center;
+  color: #fff;
+}
+
+.divider span {
+  background: transparent;
+  padding: 0 10px;
+}
+
+/* Google Button */
+.google-login-btn {
+  width: 100%;
+  background: white;
+  color: #444;
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.3s;
+}
+
+.google-login-btn:hover {
+  background: #f1f1f1;
+}
+
+.google-icon {
+  width: 20px;
+  height: 20px;
+}
+.google-wrapper {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+}

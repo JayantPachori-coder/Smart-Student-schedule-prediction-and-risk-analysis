@@ -1,0 +1,219 @@
+/* 🌌 PAGE BACKGROUND */
+.schedule-page {
+  width: 100%;
+  min-height: 100vh;
+  padding: 30px;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  color: #fff;
+}
+
+/* 🧠 TITLE */
+.schedule-page h1 {
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 32px;
+  letter-spacing: 1px;
+}
+
+/* 📦 INPUT CONTAINER */
+.tile-container {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  margin-bottom: 30px;
+}
+
+/* 🧩 SUBJECT ROW */
+.subject-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+  align-items: center;
+}
+
+/* ✏️ INPUT FIELDS */
+.subject-row input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  transition: 0.3s;
+}
+
+.subject-row input::placeholder {
+  color: #ccc;
+}
+
+.subject-row input:focus {
+  background: rgba(255,255,255,0.25);
+  transform: scale(1.02);
+}
+
+/* ❌ REMOVE BUTTON */
+.subject-row button {
+  background: #ff4d4d;
+  border: none;
+  color: white;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.subject-row button:hover {
+  background: #ff1a1a;
+}
+
+/* 🔘 BUTTON GROUP */
+.buttons {
+  display: flex;
+  gap: 15px;
+  margin-top: 15px;
+  justify-content: center;
+}
+
+/* 🔘 GENERAL BUTTON */
+.buttons button {
+  padding: 10px 18px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.3s;
+}
+
+/* ➕ ADD BUTTON */
+.buttons button:first-child {
+  background: #00c6ff;
+  color: #fff;
+}
+
+.buttons button:first-child:hover {
+  background: #0072ff;
+}
+
+/* 🚀 GENERATE BUTTON */
+.buttons button:last-child {
+  background: #28a745;
+  color: #fff;
+}
+
+.buttons button:last-child:hover {
+  background: #1e7e34;
+}
+
+/* 📊 SCHEDULE SECTION */
+.schedule-cards-container {
+  margin-top: 30px;
+}
+
+/* 🧱 CARD GRID */
+.schedule-cards {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+/* ⏰ TIME BLOCK CARD */
+.time-block-card {
+  flex: 1;
+  min-width: 250px;
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(12px);
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  transition: 0.3s;
+}
+
+.time-block-card:hover {
+  transform: translateY(-5px);
+}
+
+/* ⏱️ BLOCK TITLE */
+.time-block-card h2 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+/* 📘 SUBJECT CARD */
+.subject-card {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.15);
+  transition: 0.3s;
+}
+
+.subject-card:hover {
+  background: rgba(255,255,255,0.25);
+}
+
+/* 📚 SUBJECT TEXT */
+.subject-name {
+  font-weight: 500;
+}
+
+.subject-hours {
+  font-weight: bold;
+  color: #00ffcc;
+}
+
+/* 📄 DOWNLOAD BUTTON */
+.download-btn {
+  margin-top: 20px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #ff9800;
+  cursor: pointer;
+  color: #fff;
+  font-weight: bold;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  transition: 0.3s;
+}
+
+.download-btn:hover {
+  background: #e68900;
+}
+
+/* 📜 HISTORY SECTION */
+h2 {
+  margin-top: 40px;
+  margin-bottom: 15px;
+}
+
+/* 🧾 HISTORY CARD */
+.history-card {
+  margin-bottom: 20px;
+  background: rgba(255,255,255,0.08);
+  padding: 12px;
+  border-radius: 10px;
+  backdrop-filter: blur(10px);
+  transition: 0.3s;
+}
+
+.history-card:hover {
+  transform: scale(1.02);
+}
+
+/* 📱 RESPONSIVE */
+@media (max-width: 768px) {
+  .subject-row {
+    flex-direction: column;
+  }
+
+  .schedule-cards {
+    flex-direction: column;
+  }
+}

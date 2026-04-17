@@ -1,0 +1,69 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
+
+/* ADMIN BACKGROUND */
+.admin-bg {
+  height: 100vh;
+  background: linear-gradient(135deg, #0f172a, #1e293b, #0f172a);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* LOGIN CARD */
+.login-container {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 0 25px rgba(0,0,0,0.5);
+  text-align: center;
+  width: 350px;
+  color: white;
+  backdrop-filter: blur(10px);
+}
+
+/* TITLE */
+.login-container h2 {
+  margin-bottom: 20px;
+  font-size: 22px;
+}
+
+/* INPUTS */
+.login-container input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: none;
+  border-radius: 8px;
+  text-align: center;
+  outline: none;
+}
+
+/* BUTTON */
+.login-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  margin-top: 10px;
+  cursor: pointer;
+  background-color: #38bdf8;
+  color: black;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.login-btn:hover {
+  background-color: #0ea5e9;
+  transform: scale(1.03);
+}
+
+/* NOTE */
+.note {
+  margin-top: 15px;
+  font-size: 12px;
+  color: #ccc;
+}
