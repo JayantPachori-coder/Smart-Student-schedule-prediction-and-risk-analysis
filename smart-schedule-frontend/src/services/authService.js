@@ -1,26 +1,26 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:5000/api/auth"
+  baseURL: "https://smart-backend-2zlf.onrender.com/api/auth"
 });
 
-// ✅ SEND OTP
+// 🔥 SEND OTP
 export const sendEmailOTP = (data) => API.post("/send-otp", data);
 
-// ✅ VERIFY OTP
+// 🔥 VERIFY OTP
 export const verifyOTP = (data) => API.post("/verify-otp", data);
 
-// ✅ REGISTER
+// 🔥 REGISTER
 export const registerUser = (data) => API.post("/register", data);
 
-// ✅ LOGIN
+// 🔥 LOGIN
 export const loginUser = (data) => API.post("/login", data);
 
-// ✅ FORGOT PASSWORD
+// 🔥 FORGOT PASSWORD
 export const forgotPassword = (data) => API.post("/forgot-password", data);
 
-// ✅ VERIFY FORGOT OTP
+// 🔥 VERIFY FORGOT OTP
 export const verifyForgotOTP = (data) => API.post("/verify-forgot-otp", data);
 
-// ✅ RESET PASSWORD
+// 🔥 RESET PASSWORD
 export const resetPassword = (data) => API.post("/reset-password", data);
