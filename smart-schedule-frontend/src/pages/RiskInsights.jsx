@@ -13,7 +13,8 @@ function RiskInsights() {
   // safe user parsing
   const user = React.useMemo(() => {
     try {
-      return JSON.parse(localStorage.getItem("user"));
+      const stored = localStorage.getItem("user");
+      return stored ? JSON.parse(stored) : null;
     } catch {
       return null;
     }
@@ -29,8 +30,7 @@ function RiskInsights() {
     consistency_score: ""
   });
 
-  const [, setHistory] = useState([]); // ✅ FIX: removed unused variable (no ESLint error)
-
+  const [history, setHistory] = useState([]); // ✅ FIXED
   const [alertMsg, setAlertMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -42,26 +42,34 @@ function RiskInsights() {
     }));
   };
 
-  // fetch history (kept safe, but no state usage)
+  // =========================
+  // FETCH HISTORY (SAFE)
+  // =========================
   const fetchHistory = useCallback(async () => {
-    if (!user?._id) return;
+    if (!user?._id) {
+      console.log("No user ID found, skipping history fetch");
+      return;
+    }
 
     try {
       const res = await axios.get(
         `${BASE_API}/risk/history/${user._id}`
       );
 
-      setHistory(res.data || []);
+      setHistory(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.log("History error:", err.message);
+      setHistory([]); // ✅ prevent .map crash
     }
-  }, [user]);
+  }, [user?._id]);
 
   useEffect(() => {
     fetchHistory();
   }, [fetchHistory]);
 
-  // submit handler
+  // =========================
+  // SUBMIT
+  // =========================
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -85,7 +93,6 @@ function RiskInsights() {
 
       const result = res.data;
 
-      // alert message
       if (result.risk_level === "High Risk") {
         setAlertMsg("⚠️ High Risk!");
       } else if (result.risk_level === "Medium Risk") {
@@ -96,17 +103,12 @@ function RiskInsights() {
 
       setLoading(false);
 
-      // navigation (SAFE)
       navigate("/risk-result", {
-        state: {
-          result,
-          form
-        }
+        state: { result, form }
       });
 
     } catch (err) {
       console.log("Prediction error:", err?.response?.data || err.message);
-
       setLoading(false);
       alert("Backend error (check server logs)");
     }
