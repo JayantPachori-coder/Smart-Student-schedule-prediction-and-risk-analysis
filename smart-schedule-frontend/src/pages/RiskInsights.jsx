@@ -20,7 +20,7 @@ function RiskInsights() {
     consistency_score: ""
   });
 
-  const [result, setResult] = useState(null);
+  // ❌ REMOVED result state (not used in UI)
   const [history, setHistory] = useState([]);
   const [alert, setAlert] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,11 +32,14 @@ function RiskInsights() {
   const fetchHistory = useCallback(async () => {
     if (!user?._id) return;
 
-    const res = await axios.get(
-      `http://localhost:5000/api/risk/history/${user._id}`
-    );
-
-    setHistory(res.data || []);
+    try {
+      const res = await axios.get(
+        `http://localhost:5000/api/risk/history/${user._id}`
+      );
+      setHistory(res.data || []);
+    } catch (err) {
+      console.log(err);
+    }
   }, [user]);
 
   useEffect(() => {
@@ -44,13 +47,12 @@ function RiskInsights() {
   }, [fetchHistory]);
 
   // ======================
-  // ANALYZE (MAIN FIX)
+  // ANALYZE
   // ======================
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     setLoading(true);
-    setResult(null);
 
     try {
       const res = await axios.post(
@@ -61,14 +63,11 @@ function RiskInsights() {
         }
       );
 
-      setResult(res.data);
       generateAlert(res.data.risk_level);
 
-      // wait for smooth UX
       setTimeout(() => {
         setLoading(false);
 
-        // 👉 OPEN NEW PAGE WITH ALL DATA
         navigate("/risk-result", {
           state: {
             result: res.data,
@@ -115,7 +114,7 @@ function RiskInsights() {
         <button type="submit">Analyze</button>
       </form>
 
-      {/* 🔥 LOADING ANIMATION */}
+      {/* LOADING */}
       {loading && (
         <div className="loading-box">
           <Circles color="#00f2ff" height={80} width={80} />
