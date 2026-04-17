@@ -2,41 +2,50 @@ import sys
 import json
 import pandas as pd
 import numpy as np
-import shap
-from xgboost import XGBClassifier
 import os
+from xgboost import XGBClassifier
+
 # ==============================
-# 1. INPUT FROM NODE
+# 1. INPUT
 # ==============================
 input_data = json.loads(sys.argv[1])
 input_data.pop("userId", None)
 
 # ==============================
-# 2. LOAD DATA
+# 2. LOAD DATA (SAFE PATH)
 # ==============================
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-df = pd.read_csv(os.path.join(BASE_DIR, "risk_train.csv"))
+data_path = os.path.join(BASE_DIR, "risk_train.csv")
+
+df = pd.read_csv(data_path)
 
 X = df.drop("risk", axis=1)
 y = df["risk"]
 
 # ==============================
-# 3. TRAIN MODEL (DEV ONLY)
+# 3. TRAIN MODEL
 # ==============================
 model = XGBClassifier(
-    n_estimators=150,
+    n_estimators=100,
     max_depth=4,
-    eval_metric="mlogloss"
+    eval_metric="mlogloss",
+    use_label_encoder=False
 )
 
 model.fit(X, y)
 
 # ==============================
-# 4. PREPARE INPUT
+# 4. PREPARE INPUT (CRITICAL FIX)
 # ==============================
 user_df = pd.DataFrame([input_data])
+
+# align columns
 user_df = user_df.reindex(columns=X.columns)
+
+# FIX: remove NaN / strings / empty values
+user_df = user_df.replace([np.inf, -np.inf], np.nan)
+user_df = user_df.fillna(0)
+user_df = user_df.astype(float)
 
 # ==============================
 # 5. PREDICTION
@@ -45,41 +54,7 @@ prediction = int(model.predict(user_df)[0])
 prob = float(np.max(model.predict_proba(user_df)))
 
 # ==============================
-# 6. SHAP (FIXED & SAFE)
-# ==============================
-explainer = shap.TreeExplainer(model)
-shap_values = explainer.shap_values(user_df)
-
-feature_names = list(X.columns)
-
-# ---- SAFE SHAP EXTRACTION ----
-if isinstance(shap_values, list):
-    shap_array = shap_values[prediction][0]
-else:
-    shap_array = shap_values[0]
-
-# FORCE SAFE FLATTEN
-shap_array = np.array(shap_array).reshape(-1)
-
-# SAFE CONVERSION (NO CRASH EVER)
-shap_result = {
-    feature_names[i]: float(shap_array[i])
-    for i in range(len(feature_names))
-}
-
-# ==============================
-# 7. TOP FACTORS
-# ==============================
-top_factors = sorted(
-    shap_result.items(),
-    key=lambda x: abs(x[1]),
-    reverse=True
-)[:3]
-
-top_factors = [x[0] for x in top_factors]
-
-# ==============================
-# 8. LABELS
+# 6. LABELS
 # ==============================
 risk_map = {
     0: "Low Risk",
@@ -88,35 +63,38 @@ risk_map = {
 }
 
 # ==============================
-# 9. RULE INSIGHTS
+# 7. SIMPLE INSIGHTS (NO SHAP = NO CRASH)
 # ==============================
 insights = []
 recommendations = []
 
-if input_data.get("attendance", 0) < 60:
+attendance = float(input_data.get("attendance", 0))
+avg_score = float(input_data.get("avg_score", 0))
+missed = float(input_data.get("missed_deadlines", 0))
+study = float(input_data.get("study_hours", 0))
+
+if attendance < 60:
     insights.append("Low attendance")
     recommendations.append("Attend classes regularly")
 
-if input_data.get("avg_score", 0) < 50:
+if avg_score < 50:
     insights.append("Low academic performance")
-    recommendations.append("Revise weak subjects")
+    recommendations.append("Improve revision")
 
-if input_data.get("missed_deadlines", 0) > 3:
+if missed > 3:
     insights.append("Too many missed deadlines")
-    recommendations.append("Improve time management")
+    recommendations.append("Manage time better")
 
-if input_data.get("study_hours", 0) < 3:
+if study < 3:
     insights.append("Low study hours")
-    recommendations.append("Increase daily study time")
+    recommendations.append("Increase study time")
 
 # ==============================
-# 10. OUTPUT
+# 8. OUTPUT (SAFE JSON)
 # ==============================
 result = {
     "risk_level": risk_map.get(prediction, "Unknown"),
-    "confidence": prob,
-    "top_factors": top_factors,
-    "shap_values": shap_result,
+    "confidence": round(prob, 4),
     "insights": insights,
     "recommendations": recommendations
 }
