@@ -6,6 +6,7 @@ import {
   PieChart, Pie, Cell,
   LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid
 } from "recharts";
+
 import { motion } from "framer-motion";
 import "./RiskResult.css";
 
@@ -46,7 +47,6 @@ function RiskResult() {
 
   const isHighRisk = result.risk_level === "High Risk";
   const isMediumRisk = result.risk_level === "Medium Risk";
-  const isLowRisk = result.risk_level === "Low Risk";
 
   /* ================= PIE DATA ================= */
   const pieData = [
@@ -54,7 +54,6 @@ function RiskResult() {
     { name: "Remaining", value: 100 - result.confidence * 100 }
   ];
 
-  /* 🔥 FIXED COLORS */
   const PIE_COLORS = ["#00f2ff", "#ff4d4d"];
 
   /* ================= LINE DATA ================= */
@@ -67,8 +66,6 @@ function RiskResult() {
 
   /* ================= AI ================= */
   const generateResponse = (text) => {
-    const msg = text.toLowerCase();
-
     if (isHighRisk) {
       return "🚨 High risk detected — follow strict study plan.";
     }
@@ -138,11 +135,9 @@ function RiskResult() {
       <div className="header">
         <h1>🍎 AI Risk Dashboard</h1>
 
-        <div style={{ display: "flex", gap: "10px" }}>
-          <button className="btn secondary" onClick={() => setDarkMode(!darkMode)}>
-            Toggle Theme
-          </button>
-        </div>
+        <button className="btn secondary" onClick={() => setDarkMode(!darkMode)}>
+          Toggle Theme
+        </button>
       </div>
 
       {/* ALERT */}
@@ -160,7 +155,7 @@ function RiskResult() {
           <p>{(result.confidence * 100).toFixed(2)}%</p>
         </div>
 
-        {/* ================= PIE FIXED ================= */}
+        {/* PIE */}
         <div className="kpi-card pie">
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
@@ -174,7 +169,7 @@ function RiskResult() {
           </ResponsiveContainer>
         </div>
 
-        {/* ================= LINE FIXED ================= */}
+        {/* LINE */}
         <div className="kpi-card chart">
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={trendData}>
