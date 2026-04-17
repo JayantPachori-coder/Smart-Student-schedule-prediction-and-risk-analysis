@@ -7,7 +7,7 @@ import {
   registerUser
 } from "../services/authService";
 import { GoogleLogin } from "@react-oauth/google";
-import axios from "axios";
+import api from "../api"; // ✅ FIX
 
 function Register() {
   const navigate = useNavigate();
@@ -95,11 +95,11 @@ function Register() {
     }
   };
 
-  // 🔹 GOOGLE SIGNUP
+  // 🔹 GOOGLE SIGNUP (FIXED)
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/google",
+      const res = await api.post(
+        "/auth/google",
         { token: credentialResponse.credential }
       );
 
