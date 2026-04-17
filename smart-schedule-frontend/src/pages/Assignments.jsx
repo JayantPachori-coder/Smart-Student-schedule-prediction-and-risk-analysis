@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import api from "../api";
 import { motion } from "framer-motion";
 import "./Assignments.css";
@@ -11,19 +11,13 @@ function Assignments() {
 
   const user = JSON.parse(localStorage.getItem("user"));
 
-  useEffect(() => {
-    fetchAssignments();
-  }, []);
-
-  const fetchAssignments = async () => {
+  // ✅ FIX: wrapped in useCallback
+  const fetchAssignments = useCallback(async () => {
     try {
       setLoading(true);
 
       const res = await api.get("/assignments");
 
-      console.log("API RESPONSE:", res.data);
-
-      // ✅ SAFE DATA HANDLING (FIX MAIN ERROR)
       const data =
         Array.isArray(res.data)
           ? res.data
@@ -35,7 +29,6 @@ function Assignments() {
 
       setAssignments(data);
 
-      // ✅ SAFE forEach replacement
       const map = {};
 
       data.forEach((a) => {
@@ -53,7 +46,12 @@ function Assignments() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  // ✅ FIX: dependency added
+  useEffect(() => {
+    fetchAssignments();
+  }, [fetchAssignments]);
 
   const getTimeLeft = (deadline) => {
     if (!deadline) return "No deadline";
