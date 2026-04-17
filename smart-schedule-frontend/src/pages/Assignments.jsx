@@ -11,12 +11,12 @@ function Assignments() {
 
   const user = JSON.parse(localStorage.getItem("user"));
 
-  // ✅ FIX: wrapped in useCallback
   const fetchAssignments = useCallback(async () => {
     try {
       setLoading(true);
 
-      const res = await api.get("/assignments");
+      // ✅ FIXED
+      const res = await api.get("/api/assignments");
 
       const data =
         Array.isArray(res.data)
@@ -48,7 +48,6 @@ function Assignments() {
     }
   }, [user]);
 
-  // ✅ FIX: dependency added
   useEffect(() => {
     fetchAssignments();
   }, [fetchAssignments]);
@@ -71,7 +70,6 @@ function Assignments() {
 
     const file = files[assignment._id];
     if (!file) return alert("Select file first");
-
     if (!user?._id) return alert("User not found");
 
     const formData = new FormData();
@@ -82,7 +80,8 @@ function Assignments() {
     formData.append("file", file);
 
     try {
-      await api.post("/assignments/submit", formData);
+      // ✅ FIXED
+      await api.post("/api/assignments/submit", formData);
 
       setSubmittedMap((prev) => ({
         ...prev,
@@ -105,7 +104,7 @@ function Assignments() {
       <h1 className="title">📘 Assignments</h1>
 
       <div className="grid">
-        {Array.isArray(assignments) && assignments.length > 0 ? (
+        {assignments.length > 0 ? (
           assignments.map((a) => {
             const expired = new Date(a.deadline) < new Date();
             const submitted = submittedMap[a._id];
@@ -117,14 +116,11 @@ function Assignments() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                <h2>{a.title || "No Title"}</h2>
-                <p>{a.description || "No Description"}</p>
+                <h2>{a.title}</h2>
+                <p>{a.description}</p>
 
                 <p className="meta">
-                  📅{" "}
-                  {a.deadline
-                    ? new Date(a.deadline).toDateString()
-                    : "No deadline"}
+                  📅 {new Date(a.deadline).toDateString()}
                 </p>
 
                 <p className="timer">⏳ {getTimeLeft(a.deadline)}</p>
@@ -132,14 +128,9 @@ function Assignments() {
                 {expired ? (
                   <p className="closed">🔒 Closed</p>
                 ) : submitted ? (
-                  <button className="submittedBtn" disabled>
-                    ✅ Submitted
-                  </button>
+                  <button disabled>✅ Submitted</button>
                 ) : (
-                  <form
-                    className="form"
-                    onSubmit={(e) => submitAssignment(e, a)}
-                  >
+                  <form onSubmit={(e) => submitAssignment(e, a)}>
                     <input
                       type="file"
                       onChange={(e) =>
@@ -149,7 +140,6 @@ function Assignments() {
                         }))
                       }
                     />
-
                     <button type="submit">Submit</button>
                   </form>
                 )}
