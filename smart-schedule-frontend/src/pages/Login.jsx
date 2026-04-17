@@ -3,7 +3,7 @@ import "./Login.css";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../services/authService";
 import { GoogleLogin } from "@react-oauth/google";
-import axios from "axios";
+import api from "../api"; // ✅ use this
 
 function Login() {
   const navigate = useNavigate();
@@ -19,7 +19,7 @@ function Login() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // 🔹 LOGIN
+  // 🔹 NORMAL LOGIN
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -27,11 +27,9 @@ function Login() {
     try {
       const res = await loginUser(form);
 
-      // ✅ Save token + user
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
 
-      // ✅ Redirect AFTER login
       navigate("/home");
 
     } catch (err) {
@@ -47,18 +45,16 @@ function Login() {
     setLoading(false);
   };
 
-  // 🔹 GOOGLE LOGIN
+  // 🔹 GOOGLE LOGIN (FIXED)
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/google",
+      const res = await api.post(
+        "/auth/google",
         { token: credentialResponse.credential }
       );
 
-      // ✅ Save user
       localStorage.setItem("user", JSON.stringify(res.data.user));
 
-      // ✅ Redirect
       navigate("/home");
 
     } catch (err) {
