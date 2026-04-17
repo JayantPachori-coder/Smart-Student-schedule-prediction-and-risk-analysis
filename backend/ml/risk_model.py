@@ -6,7 +6,7 @@ import os
 from xgboost import XGBClassifier
 
 # =========================
-# 1. SAFE INPUT
+# SAFE INPUT
 # =========================
 try:
     input_data = json.loads(sys.argv[1])
@@ -17,55 +17,50 @@ except Exception as e:
 input_data.pop("userId", None)
 
 # =========================
-# 2. LOAD DATA SAFE PATH
+# LOAD DATA SAFE
 # =========================
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-data_path = os.path.join(BASE_DIR, "risk_train.csv")
-
 try:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    data_path = os.path.join(BASE_DIR, "risk_train.csv")
     df = pd.read_csv(data_path)
 except Exception as e:
-    print(json.dumps({"error": "CSV not found"}))
+    print(json.dumps({"error": "CSV load failed"}))
     sys.exit(1)
 
 # =========================
-# 3. SPLIT DATA
+# SPLIT DATA
 # =========================
 X = df.drop("risk", axis=1)
 y = df["risk"]
 
 # =========================
-# 4. TRAIN MODEL
+# TRAIN MODEL
 # =========================
-model = XGBClassifier(
-    n_estimators=100,
-    max_depth=4,
-    eval_metric="mlogloss",
-    use_label_encoder=False
-)
-
-model.fit(X, y)
+try:
+    model = XGBClassifier(
+        n_estimators=100,
+        max_depth=4,
+        eval_metric="mlogloss"
+    )
+    model.fit(X, y)
+except Exception as e:
+    print(json.dumps({"error": "Model training failed"}))
+    sys.exit(1)
 
 # =========================
-# 5. SAFE INPUT ALIGNMENT
+# INPUT ALIGNMENT (CRITICAL FIX)
 # =========================
 user_df = pd.DataFrame([input_data])
 
-# add missing columns
 for col in X.columns:
     if col not in user_df.columns:
         user_df[col] = 0
 
-# reorder columns
 user_df = user_df[X.columns]
-
-# clean values
-user_df = user_df.replace([np.inf, -np.inf], np.nan)
-user_df = user_df.fillna(0)
 user_df = user_df.apply(pd.to_numeric, errors="coerce").fillna(0)
 
 # =========================
-# 6. PREDICTION SAFE
+# PREDICTION (SAFE)
 # =========================
 try:
     prediction = int(model.predict(user_df)[0])
@@ -75,7 +70,7 @@ except Exception as e:
     sys.exit(1)
 
 # =========================
-# 7. LABELS
+# LABELS
 # =========================
 risk_map = {
     0: "Low Risk",
@@ -84,7 +79,7 @@ risk_map = {
 }
 
 # =========================
-# 8. RULE-BASED INSIGHTS
+# INSIGHTS
 # =========================
 attendance = float(input_data.get("attendance", 0))
 avg_score = float(input_data.get("avg_score", 0))
@@ -111,7 +106,7 @@ if study < 3:
     recommendations.append("Increase study time")
 
 # =========================
-# 9. FINAL OUTPUT (IMPORTANT)
+# FINAL OUTPUT (VERY IMPORTANT)
 # =========================
 result = {
     "risk_level": risk_map.get(prediction, "Unknown"),
@@ -121,4 +116,4 @@ result = {
 }
 
 print(json.dumps(result))
-sys.stdout.flush()
+sys.stdout.flush()   # 🔥 CRITICAL FIX FOR NODE
