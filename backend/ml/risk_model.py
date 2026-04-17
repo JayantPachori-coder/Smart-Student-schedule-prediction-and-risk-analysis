@@ -6,55 +6,78 @@ import os
 from xgboost import XGBClassifier
 
 # ==============================
-# 1. INPUT
+# 1. SAFE INPUT HANDLING
 # ==============================
-input_data = json.loads(sys.argv[1])
+try:
+    input_data = json.loads(sys.argv[1])
+except Exception as e:
+    print(json.dumps({"error": "Invalid JSON input"}))
+    sys.exit(1)
+
 input_data.pop("userId", None)
 
 # ==============================
-# 2. LOAD DATA (SAFE PATH)
+# 2. SAFE DATA LOAD
 # ==============================
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-data_path = os.path.join(BASE_DIR, "risk_train.csv")
+try:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    data_path = os.path.join(BASE_DIR, "risk_train.csv")
 
-df = pd.read_csv(data_path)
+    df = pd.read_csv(data_path)
 
+except Exception as e:
+    print(json.dumps({"error": "CSV file not found or invalid path"}))
+    sys.exit(1)
+
+# ==============================
+# 3. SPLIT DATA
+# ==============================
 X = df.drop("risk", axis=1)
 y = df["risk"]
 
 # ==============================
-# 3. TRAIN MODEL
+# 4. TRAIN MODEL
 # ==============================
-model = XGBClassifier(
-    n_estimators=100,
-    max_depth=4,
-    eval_metric="mlogloss",
-    use_label_encoder=False
-)
+try:
+    model = XGBClassifier(
+        n_estimators=100,
+        max_depth=4,
+        eval_metric="mlogloss",
+        use_label_encoder=False
+    )
 
-model.fit(X, y)
+    model.fit(X, y)
+
+except Exception as e:
+    print(json.dumps({"error": "Model training failed"}))
+    sys.exit(1)
 
 # ==============================
-# 4. PREPARE INPUT (CRITICAL FIX)
+# 5. SAFE INPUT PREP
 # ==============================
 user_df = pd.DataFrame([input_data])
 
 # align columns
 user_df = user_df.reindex(columns=X.columns)
 
-# FIX: remove NaN / strings / empty values
+# IMPORTANT FIX (CRASH PREVENTION)
 user_df = user_df.replace([np.inf, -np.inf], np.nan)
 user_df = user_df.fillna(0)
-user_df = user_df.astype(float)
+user_df = user_df.apply(pd.to_numeric, errors='coerce').fillna(0)
 
 # ==============================
-# 5. PREDICTION
+# 6. PREDICTION
 # ==============================
-prediction = int(model.predict(user_df)[0])
-prob = float(np.max(model.predict_proba(user_df)))
+try:
+    prediction = int(model.predict(user_df)[0])
+    prob = float(np.max(model.predict_proba(user_df)))
+
+except Exception as e:
+    print(json.dumps({"error": "Prediction failed"}))
+    sys.exit(1)
 
 # ==============================
-# 6. LABELS
+# 7. LABELS
 # ==============================
 risk_map = {
     0: "Low Risk",
@@ -63,15 +86,15 @@ risk_map = {
 }
 
 # ==============================
-# 7. SIMPLE INSIGHTS (NO SHAP = NO CRASH)
+# 8. RULE-BASED INSIGHTS
 # ==============================
-insights = []
-recommendations = []
-
 attendance = float(input_data.get("attendance", 0))
 avg_score = float(input_data.get("avg_score", 0))
 missed = float(input_data.get("missed_deadlines", 0))
 study = float(input_data.get("study_hours", 0))
+
+insights = []
+recommendations = []
 
 if attendance < 60:
     insights.append("Low attendance")
@@ -90,7 +113,7 @@ if study < 3:
     recommendations.append("Increase study time")
 
 # ==============================
-# 8. OUTPUT (SAFE JSON)
+# 9. FINAL OUTPUT
 # ==============================
 result = {
     "risk_level": risk_map.get(prediction, "Unknown"),
