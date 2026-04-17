@@ -1,10 +1,10 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:5000/api"
+  baseURL: "https://smart-backend-2zlf.onrender.com/api"
 });
 
-// 🔥 AUTO ADD TOKEN FOR ALL REQUESTS
+// 🔥 AUTO ADD TOKEN
 API.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
 
@@ -15,10 +15,12 @@ API.interceptors.request.use((config) => {
   return config;
 });
 
+// 📌 Generate schedule
 export const generateSchedule = (data) => {
   return API.post("/schedule/predict", data);
 };
 
+// 📌 Get history
 export const getSchedules = () => {
   return API.get("/schedule/history");
 };
