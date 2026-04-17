@@ -11,7 +11,7 @@ const ViewSchedule = () => {
         const token = localStorage.getItem("token");
 
         const res = await axios.get(
-          "http://localhost:5000/api/schedule/history",
+          "https://smart-backend-2zlf.onrender.com/api/schedule/history",
           {
             headers: {
               Authorization: `Bearer ${token}`,
