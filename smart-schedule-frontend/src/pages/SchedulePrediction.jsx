@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { generateSchedule, getSchedules } from "../services/schedule";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
@@ -6,8 +6,7 @@ import "./SchedulePrediction.css";
 
 const SchedulePrediction = () => {
 
-  const userId = "test123";
-  const token = localStorage.getItem("token"); // 🔥 FIX ADDED
+  const token = localStorage.getItem("token");
 
   const [subjects, setSubjects] = useState([
     { name: "", difficulty: "", performance: "", hours: "" }
@@ -17,9 +16,20 @@ const SchedulePrediction = () => {
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState([]);
 
+  // ✅ FIXED: wrapped in useCallback
+  const fetchHistory = useCallback(async () => {
+    try {
+      const res = await getSchedules(token);
+      setHistory(res.data || []);
+    } catch (err) {
+      console.error("HISTORY ERROR:", err.response?.data || err.message);
+    }
+  }, [token]);
+
+  // ✅ FIXED: dependency added
   useEffect(() => {
     fetchHistory();
-  }, []);
+  }, [fetchHistory]);
 
   const handleChange = (idx, field, value) => {
     const updated = [...subjects];
@@ -40,7 +50,7 @@ const SchedulePrediction = () => {
   };
 
   // -----------------------------
-  // GENERATE SCHEDULE (FIXED)
+  // GENERATE SCHEDULE
   // -----------------------------
   const handleGenerate = async () => {
     setLoading(true);
@@ -65,12 +75,10 @@ const SchedulePrediction = () => {
         { subjects: formattedSubjects },
         {
           headers: {
-            Authorization: `Bearer ${token}` // 🔥 FIX IMPORTANT
+            Authorization: `Bearer ${token}`
           }
         }
       );
-
-      console.log("API RESPONSE:", res.data);
 
       if (res.data?.schedule) {
         setPredictedSchedule(res.data.schedule);
@@ -89,19 +97,7 @@ const SchedulePrediction = () => {
   };
 
   // -----------------------------
-  // HISTORY (FIXED)
-  // -----------------------------
-  const fetchHistory = async () => {
-    try {
-      const res = await getSchedules(token); // 🔥 FIX
-      setHistory(res.data || []);
-    } catch (err) {
-      console.error("HISTORY ERROR:", err.response?.data || err.message);
-    }
-  };
-
-  // -----------------------------
-  // PDF
+  // PDF DOWNLOAD
   // -----------------------------
   const downloadPDF = async () => {
     const element = document.getElementById("schedule-cards");
