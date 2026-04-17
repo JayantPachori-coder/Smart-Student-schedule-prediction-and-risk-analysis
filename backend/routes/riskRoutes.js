@@ -5,19 +5,16 @@ import path from "path";
 import RiskResult from "../models/RiskResult.js";
 import User from "../models/User.js";
 import EmailAlert from "../models/EmailAlert.js";
-
 import { sendRiskEmail } from "../utils/sendRiskMail.js";
 
 const router = express.Router();
 
 // =============================
-// 🔥 PREDICT RISK (ML ENGINE)
+// 🔥 PREDICT RISK
 // =============================
 router.post("/predict-risk", async (req, res) => {
   try {
     const { userId, ...inputData } = req.body;
-
-    console.log("📥 Incoming:", inputData);
 
     const pythonScript = path.join(
       process.cwd(),
@@ -39,56 +36,58 @@ router.post("/predict-risk", async (req, res) => {
 
     python.stderr.on("data", (data) => {
       error += data.toString();
+      console.error("PYTHON ERROR:", data.toString());
     });
 
+    // =============================
+    // TIMEOUT SAFETY
+    // =============================
+    const timeout = setTimeout(() => {
+      python.kill("SIGKILL");
+      return res.status(500).json({
+        error: "Python execution timeout",
+      });
+    }, 15000);
+
     python.on("close", async () => {
+      clearTimeout(timeout);
+
       try {
-        console.log("🐍 Python Output:", output);
-
-        if (error) {
-          console.log("⚠️ Python Error:", error);
-        }
-
         if (!output || output.trim() === "") {
           return res.status(500).json({
             error: "Empty response from ML model",
+            pythonError: error,
           });
         }
 
         const parsed = JSON.parse(output);
 
         // =============================
-        // 🧠 SAVE ML RESULT
+        // SAVE RESULT
         // =============================
         await RiskResult.create({
           userId,
           inputData,
           riskLevel: parsed.risk_level,
           confidence: parsed.confidence,
-          shapValues: parsed.shap_values,
+          riskScore: parsed.risk_score,
           insights: parsed.insights,
           recommendations: parsed.recommendations,
         });
 
         // =============================
-        // 📩 GET USER EMAIL
+        // USER FETCH
         // =============================
         const user = await User.findById(userId);
 
         if (user?.email) {
           try {
-            // =============================
-            // 📧 SEND EMAIL
-            // =============================
             await sendRiskEmail(
               user.email,
               parsed.risk_level,
               parsed.confidence
             );
 
-            // =============================
-            // 🗄 SAVE EMAIL LOG
-            // =============================
             await EmailAlert.create({
               userId,
               email: user.email,
@@ -97,11 +96,7 @@ router.post("/predict-risk", async (req, res) => {
               status: "SENT",
             });
 
-            console.log("📩 Email sent + logged:", user.email);
-
           } catch (emailErr) {
-            console.log("❌ Email failed:", emailErr.message);
-
             await EmailAlert.create({
               userId,
               email: user.email,
@@ -115,55 +110,28 @@ router.post("/predict-risk", async (req, res) => {
         return res.json(parsed);
 
       } catch (err) {
-        console.log("❌ Backend Error:", err.message);
-
         return res.status(500).json({
           error: "Backend processing failed",
+          details: err.message,
           raw: output,
+          pythonError: error,
         });
       }
     });
 
     python.on("error", (err) => {
-      console.log("❌ Python Error:", err.message);
+      clearTimeout(timeout);
       return res.status(500).json({
-        error: "Python execution failed",
+        error: "Python spawn failed",
+        details: err.message,
       });
     });
 
   } catch (err) {
-    console.log("❌ Server Error:", err.message);
-    res.status(500).json({ error: "Server failed" });
-  }
-});
-
-// =============================
-// 📊 RISK HISTORY
-// =============================
-router.get("/history/:userId", async (req, res) => {
-  try {
-    const data = await RiskResult.find({
-      userId: req.params.userId,
-    }).sort({ createdAt: -1 });
-
-    res.json(data);
-  } catch (err) {
-    res.status(500).json({ error: "History fetch failed" });
-  }
-});
-
-// =============================
-// 📧 EMAIL HISTORY
-// =============================
-router.get("/email-history/:userId", async (req, res) => {
-  try {
-    const logs = await EmailAlert.find({
-      userId: req.params.userId,
-    }).sort({ createdAt: -1 });
-
-    res.json(logs);
-  } catch (err) {
-    res.status(500).json({ error: "Email history fetch failed" });
+    res.status(500).json({
+      error: "Server failed",
+      details: err.message,
+    });
   }
 });
 
