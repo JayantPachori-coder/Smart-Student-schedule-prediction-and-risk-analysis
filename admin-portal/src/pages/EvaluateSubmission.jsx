@@ -1,24 +1,21 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import "./Evaluation.css";
 
 const API = "https://smart-backend-2zlf.onrender.com";
 
 export default function EvaluateSubmission() {
   const { id } = useParams();
-  const navigate = useNavigate();
 
-  const [submission, setSubmission] = useState(null);
-  const [marks, setMarks] = useState("");
-  const [feedback, setFeedback] = useState("");
+  const [submissions, setSubmissions] = useState([]);
+  const [marks, setMarks] = useState({});
+  const [feedback, setFeedback] = useState({});
   const [loading, setLoading] = useState(true);
 
-  /* =========================
-     FETCH SUBMISSIONS
-  ========================= */
+  // ================= FETCH =================
   useEffect(() => {
-    const fetchSubmission = async () => {
+    const fetchSubmissions = async () => {
       try {
         setLoading(true);
 
@@ -28,98 +25,89 @@ export default function EvaluateSubmission() {
 
         console.log("API RESPONSE:", res.data);
 
-        // ✅ FIX: take first submission safely
-        const submissions = res?.data?.data || [];
-
-        setSubmission(submissions.length > 0 ? submissions[0] : null);
+        setSubmissions(res?.data?.data || []);
 
       } catch (err) {
         console.error("Error:", err.message);
-        setSubmission(null);
+        setSubmissions([]);
       } finally {
         setLoading(false);
       }
     };
 
-    if (id) fetchSubmission();
+    if (id) fetchSubmissions();
   }, [id]);
 
-  /* =========================
-     SUBMIT EVALUATION
-  ========================= */
-  const handleSubmit = async () => {
+  // ================= SUBMIT =================
+  const handleSubmit = async (submissionId) => {
     try {
-      if (!marks) {
-        alert("Please enter marks");
+      if (!marks[submissionId]) {
+        alert("Enter marks");
         return;
       }
 
       await axios.post(`${API}/api/submissions/evaluate`, {
-        submissionId: submission._id, // ✅ correct
-        marks: Number(marks),
-        feedback: feedback,
+        submissionId,
+        marks: Number(marks[submissionId]),
+        feedback: feedback[submissionId] || "",
       });
 
-      alert("Evaluation submitted 🚀");
-      navigate(-1);
+      alert("Evaluated 🚀");
+
     } catch (err) {
       console.error(err.message);
-      alert("Failed to submit evaluation");
+      alert("Failed");
     }
   };
 
-  /* =========================
-     LOADING STATE
-  ========================= */
+  // ================= UI =================
   if (loading) return <div className="page">Loading...</div>;
 
-  if (!submission) return <div className="page">No submission found ❌</div>;
+  if (submissions.length === 0)
+    return <div className="page">No submissions found ❌</div>;
 
-  /* =========================
-     UI
-  ========================= */
   return (
     <div className="page eval-grid">
+      {submissions.map((s) => (
+        <div className="card glass" key={s._id}>
+          <h3>{s.assignmentId?.title}</h3>
 
-      <div className="card glass">
-        <h2>📄 Submission Details</h2>
+          <p><b>Student:</b> {s.studentId?.firstName}</p>
+          <p><b>Email:</b> {s.studentId?.email}</p>
+          <p><b>Status:</b> {s.status}</p>
 
-        <p><b>Student:</b> {submission.studentId?.firstName}</p>
-        <p><b>Email:</b> {submission.studentId?.email}</p>
-        <p><b>Assignment:</b> {submission.assignmentId?.title}</p>
-        <p><b>Status:</b> {submission.status}</p>
+          {s.file && (
+            <a
+              href={`${API}/uploads/${s.file}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              📥 Download File
+            </a>
+          )}
 
-        {submission.file && (
-          <a
-            href={`${API}/uploads/${submission.file}`}
-            target="_blank"
-          >
-            Download File
-          </a>
-        )}
-      </div>
+          <input
+            type="number"
+            placeholder="Marks"
+            value={marks[s._id] || ""}
+            onChange={(e) =>
+              setMarks({ ...marks, [s._id]: e.target.value })
+            }
+          />
 
-      <div className="card glass">
-        <h2>🧑‍🏫 Evaluate</h2>
+          <textarea
+            placeholder="Feedback"
+            value={feedback[s._id] || ""}
+            onChange={(e) =>
+              setFeedback({ ...feedback, [s._id]: e.target.value })
+            }
+          />
 
-        <input
-          type="number"
-          placeholder="Marks"
-          value={marks}
-          onChange={(e) => setMarks(e.target.value)}
-        />
-
-        <textarea
-          placeholder="Feedback"
-          value={feedback}
-          onChange={(e) => setFeedback(e.target.value)}
-        />
-
-        <button onClick={handleSubmit}>
-          Submit 🚀
-        </button>
-      </div>
-
+          <button onClick={() => handleSubmit(s._id)}>
+            Submit Evaluation 🚀
+          </button>
+        </div>
+      ))}
     </div>
   );
 }
