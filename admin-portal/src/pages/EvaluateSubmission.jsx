@@ -1,12 +1,13 @@
+// ✅ ONLY ONE default export
+
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import "./Evaluation.css";
 
-// ✅ Central API (production safe)
 const API = "https://smart-backend-2zlf.onrender.com";
 
-export default function EvaluateSubmission() {
+function EvaluateSubmission() {
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -15,20 +16,16 @@ export default function EvaluateSubmission() {
   const [feedback, setFeedback] = useState("");
   const [loading, setLoading] = useState(true);
 
-  /* =========================
-     LOAD SINGLE SUBMISSION (FIXED)
-  ========================= */
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
 
-        // ✅ Better: fetch single submission instead of full list
         const res = await axios.get(`${API}/api/submissions/${id}`);
 
         setData(res?.data?.data || null);
       } catch (err) {
-        console.error("Fetch error:", err);
+        console.error(err);
         setData(null);
       } finally {
         setLoading(false);
@@ -38,15 +35,9 @@ export default function EvaluateSubmission() {
     if (id) fetchData();
   }, [id]);
 
-  /* =========================
-     SUBMIT EVALUATION
-  ========================= */
   const submit = async () => {
     try {
-      if (!marks.trim()) {
-        alert("Please enter marks");
-        return;
-      }
+      if (!marks) return alert("Enter marks");
 
       await axios.post(`${API}/api/submissions/evaluate`, {
         submissionId: id,
@@ -55,39 +46,28 @@ export default function EvaluateSubmission() {
       });
 
       alert("Evaluation Done 🚀");
-
       navigate(-1);
     } catch (err) {
-      console.error("Evaluation error:", err);
+      console.error(err);
       alert("Error evaluating submission");
     }
   };
 
-  /* =========================
-     LOADING STATE
-  ========================= */
-  if (loading) return <div className="page">Loading submission...</div>;
+  if (loading) return <div className="page">Loading...</div>;
+  if (!data) return <div className="page">Not found ❌</div>;
 
-  if (!data) return <div className="page">Submission not found ❌</div>;
-
-  /* =========================
-     UI
-  ========================= */
   return (
     <div className="page eval-grid">
 
-      {/* LEFT SIDE */}
       <div className="card glass">
         <h2>📄 Submission</h2>
 
         <p>
-          <b>Student:</b>{" "}
-          {data?.studentId?.firstName || "Unknown"}
+          <b>Student:</b> {data?.studentId?.firstName}
         </p>
 
         <p>
-          <b>Assignment:</b>{" "}
-          {data?.assignmentId?.title || "N/A"}
+          <b>Assignment:</b> {data?.assignmentId?.title}
         </p>
 
         {data?.file && (
@@ -96,160 +76,32 @@ export default function EvaluateSubmission() {
             target="_blank"
             rel="noreferrer"
           >
-            ⬇ Download Submitted File
+            Download File
           </a>
         )}
       </div>
 
-      {/* RIGHT SIDE */}
       <div className="card glass">
-        <h2>🧑‍🏫 Evaluate Submission</h2>
+        <h2>Evaluate</h2>
 
         <input
           type="number"
-          placeholder="Marks (out of 100)"
           value={marks}
           onChange={(e) => setMarks(e.target.value)}
+          placeholder="Marks"
         />
 
         <textarea
-          placeholder="Feedback for student"
           value={feedback}
           onChange={(e) => setFeedback(e.target.value)}
+          placeholder="Feedback"
         />
 
-        <button onClick={submit}>
-          Submit Evaluation 🚀
-        </button>
-      </div>
-
-    </div>
-  );
-}import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { useParams, useNavigate } from "react-router-dom";
-import "./Evaluation.css";
-
-// ✅ Central API (production safe)
-const API = "https://smart-backend-2zlf.onrender.com";
-
-export default function EvaluateSubmission() {
-  const { id } = useParams();
-  const navigate = useNavigate();
-
-  const [data, setData] = useState(null);
-  const [marks, setMarks] = useState("");
-  const [feedback, setFeedback] = useState("");
-  const [loading, setLoading] = useState(true);
-
-  /* =========================
-     LOAD SINGLE SUBMISSION (FIXED)
-  ========================= */
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-
-        // ✅ Better: fetch single submission instead of full list
-        const res = await axios.get(`${API}/api/submissions/${id}`);
-
-        setData(res?.data?.data || null);
-      } catch (err) {
-        console.error("Fetch error:", err);
-        setData(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (id) fetchData();
-  }, [id]);
-
-  /* =========================
-     SUBMIT EVALUATION
-  ========================= */
-  const submit = async () => {
-    try {
-      if (!marks.trim()) {
-        alert("Please enter marks");
-        return;
-      }
-
-      await axios.post(`${API}/api/submissions/evaluate`, {
-        submissionId: id,
-        marks: Number(marks),
-        feedback,
-      });
-
-      alert("Evaluation Done 🚀");
-
-      navigate(-1);
-    } catch (err) {
-      console.error("Evaluation error:", err);
-      alert("Error evaluating submission");
-    }
-  };
-
-  /* =========================
-     LOADING STATE
-  ========================= */
-  if (loading) return <div className="page">Loading submission...</div>;
-
-  if (!data) return <div className="page">Submission not found ❌</div>;
-
-  /* =========================
-     UI
-  ========================= */
-  return (
-    <div className="page eval-grid">
-
-      {/* LEFT SIDE */}
-      <div className="card glass">
-        <h2>📄 Submission</h2>
-
-        <p>
-          <b>Student:</b>{" "}
-          {data?.studentId?.firstName || "Unknown"}
-        </p>
-
-        <p>
-          <b>Assignment:</b>{" "}
-          {data?.assignmentId?.title || "N/A"}
-        </p>
-
-        {data?.file && (
-          <a
-            href={`${API}/uploads/${data.file}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            ⬇ Download Submitted File
-          </a>
-        )}
-      </div>
-
-      {/* RIGHT SIDE */}
-      <div className="card glass">
-        <h2>🧑‍🏫 Evaluate Submission</h2>
-
-        <input
-          type="number"
-          placeholder="Marks (out of 100)"
-          value={marks}
-          onChange={(e) => setMarks(e.target.value)}
-        />
-
-        <textarea
-          placeholder="Feedback for student"
-          value={feedback}
-          onChange={(e) => setFeedback(e.target.value)}
-        />
-
-        <button onClick={submit}>
-          Submit Evaluation 🚀
-        </button>
+        <button onClick={submit}>Submit</button>
       </div>
 
     </div>
   );
 }
+
+export default EvaluateSubmission;
