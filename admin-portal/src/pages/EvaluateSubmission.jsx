@@ -15,34 +15,26 @@ export default function EvaluateSubmission() {
   const [loading, setLoading] = useState(true);
 
   /* =========================
-     FETCH SUBMISSION
+     FETCH SUBMISSIONS
   ========================= */
   useEffect(() => {
     const fetchSubmission = async () => {
       try {
         setLoading(true);
 
-        console.log("Fetching for assignment ID:", id);
-
         const res = await axios.get(
           `${API}/api/submissions/assignment/${id}`
         );
 
-        console.log("API Response:", res.data);
+        console.log("API RESPONSE:", res.data);
 
-        // assuming backend returns array
-        const data = res?.data?.data;
+        // ✅ FIX: take first submission safely
+        const submissions = res?.data?.data || [];
 
-        if (Array.isArray(data)) {
-          setSubmission(data[0] || null); // take first submission
-        } else {
-          setSubmission(data || null);
-        }
+        setSubmission(submissions.length > 0 ? submissions[0] : null);
+
       } catch (err) {
-        console.error(
-          "Error fetching submission:",
-          err?.response?.data || err.message
-        );
+        console.error("Error:", err.message);
         setSubmission(null);
       } finally {
         setLoading(false);
@@ -57,24 +49,21 @@ export default function EvaluateSubmission() {
   ========================= */
   const handleSubmit = async () => {
     try {
-      if (!marks.toString().trim()) {
+      if (!marks) {
         alert("Please enter marks");
         return;
       }
 
       await axios.post(`${API}/api/submissions/evaluate`, {
-        submissionId: submission?._id, // IMPORTANT FIX
+        submissionId: submission._id, // ✅ correct
         marks: Number(marks),
-        feedback: feedback.trim(),
+        feedback: feedback,
       });
 
-      alert("Evaluation submitted successfully 🚀");
+      alert("Evaluation submitted 🚀");
       navigate(-1);
     } catch (err) {
-      console.error(
-        "Evaluation error:",
-        err?.response?.data || err.message
-      );
+      console.error(err.message);
       alert("Failed to submit evaluation");
     }
   };
@@ -82,17 +71,9 @@ export default function EvaluateSubmission() {
   /* =========================
      LOADING STATE
   ========================= */
-  if (loading) {
-    return <div className="page">Loading submission...</div>;
-  }
+  if (loading) return <div className="page">Loading...</div>;
 
-  if (!submission) {
-    return (
-      <div className="page">
-        No submission found for this assignment ❌
-      </div>
-    );
-  }
+  if (!submission) return <div className="page">No submission found ❌</div>;
 
   /* =========================
      UI
@@ -100,62 +81,42 @@ export default function EvaluateSubmission() {
   return (
     <div className="page eval-grid">
 
-      {/* LEFT SIDE */}
       <div className="card glass">
         <h2>📄 Submission Details</h2>
 
-        <p>
-          <b>Student:</b>{" "}
-          {submission?.studentId?.firstName || "Unknown"}
-        </p>
+        <p><b>Student:</b> {submission.studentId?.firstName}</p>
+        <p><b>Email:</b> {submission.studentId?.email}</p>
+        <p><b>Assignment:</b> {submission.assignmentId?.title}</p>
+        <p><b>Status:</b> {submission.status}</p>
 
-        <p>
-          <b>Email:</b>{" "}
-          {submission?.studentId?.email || "N/A"}
-        </p>
-
-        <p>
-          <b>Assignment:</b>{" "}
-          {submission?.assignmentId?.title || "N/A"}
-        </p>
-
-        <p>
-          <b>Status:</b>{" "}
-          {submission?.status || "submitted"}
-        </p>
-
-        {submission?.file && (
+        {submission.file && (
           <a
             href={`${API}/uploads/${submission.file}`}
             target="_blank"
-            rel="noreferrer"
           >
-            ⬇ Download Submitted File
+            Download File
           </a>
         )}
       </div>
 
-      {/* RIGHT SIDE */}
       <div className="card glass">
-        <h2>🧑‍🏫 Evaluate Submission</h2>
+        <h2>🧑‍🏫 Evaluate</h2>
 
         <input
           type="number"
-          placeholder="Enter marks (out of 100)"
+          placeholder="Marks"
           value={marks}
           onChange={(e) => setMarks(e.target.value)}
-          min="0"
-          max="100"
         />
 
         <textarea
-          placeholder="Write feedback for student..."
+          placeholder="Feedback"
           value={feedback}
           onChange={(e) => setFeedback(e.target.value)}
         />
 
         <button onClick={handleSubmit}>
-          Submit Evaluation 🚀
+          Submit 🚀
         </button>
       </div>
 
