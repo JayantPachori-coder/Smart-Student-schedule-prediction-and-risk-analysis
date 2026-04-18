@@ -3,6 +3,11 @@ import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import "./Evaluation.css";
 
+// ✅ Use environment or fallback (safe for deployment)
+const API =
+  process.env.REACT_APP_API_URL ||
+  "https://smart-backend-2zlf.onrender.com";
+
 export default function EvaluateSubmission() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -10,6 +15,7 @@ export default function EvaluateSubmission() {
   const [data, setData] = useState(null);
   const [marks, setMarks] = useState("");
   const [feedback, setFeedback] = useState("");
+  const [loading, setLoading] = useState(true);
 
   /* =========================
      LOAD SUBMISSION
@@ -17,15 +23,20 @@ export default function EvaluateSubmission() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get(
-          "http://localhost:5000/api/submissions"
-        );
+        setLoading(true);
 
-        const found = res.data.data?.find((x) => x._id === id);
+        const res = await axios.get(`${API}/api/submissions`);
+
+        const submissions = res.data?.data || [];
+
+        const found = submissions.find((x) => x._id === id);
 
         setData(found || null);
       } catch (err) {
-        console.log("Fetch error:", err);
+        console.error("Fetch error:", err);
+        setData(null);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -39,22 +50,17 @@ export default function EvaluateSubmission() {
     try {
       if (!marks) return alert("Please enter marks");
 
-      await axios.post(
-        "http://localhost:5000/api/submissions/evaluate",
-        {
-          submissionId: id,
-          marks,
-          feedback,
-        }
-      );
+      await axios.post(`${API}/api/submissions/evaluate`, {
+        submissionId: id,
+        marks,
+        feedback,
+      });
 
       alert("Evaluation Done 🚀");
 
-      // go back to submissions list
       navigate(-1);
-
     } catch (err) {
-      console.log(err);
+      console.error(err);
       alert("Error evaluating submission");
     }
   };
@@ -62,24 +68,37 @@ export default function EvaluateSubmission() {
   /* =========================
      LOADING STATE
   ========================= */
-  if (!data) {
+  if (loading) {
     return <div className="page">Loading submission...</div>;
   }
 
+  if (!data) {
+    return <div className="page">Submission not found ❌</div>;
+  }
+
+  /* =========================
+     UI
+  ========================= */
   return (
     <div className="page eval-grid">
-
+      
       {/* LEFT SIDE */}
       <div className="card glass">
         <h2>📄 Submission</h2>
 
-        <p><b>Student:</b> {data.studentId?.firstName}</p>
-        <p><b>Assignment:</b> {data.assignmentId?.title}</p>
+        <p>
+          <b>Student:</b>{" "}
+          {data?.studentId?.firstName || "Unknown"}
+        </p>
 
-        {/* FILE DOWNLOAD FIX */}
-        {data.file && (
+        <p>
+          <b>Assignment:</b>{" "}
+          {data?.assignmentId?.title || "N/A"}
+        </p>
+
+        {data?.file && (
           <a
-            href={`http://localhost:5000/uploads/${data.file}`}
+            href={`${API}/uploads/${data.file}`}
             target="_blank"
             rel="noreferrer"
           >
@@ -109,7 +128,6 @@ export default function EvaluateSubmission() {
           Submit Evaluation 🚀
         </button>
       </div>
-
     </div>
   );
 }
