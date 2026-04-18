@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import api from "../api";
 import { motion } from "framer-motion";
 import "./Assignments.css";
@@ -9,8 +9,20 @@ function Assignments() {
   const [submittedMap, setSubmittedMap] = useState({});
   const [loading, setLoading] = useState(true);
 
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const API = "https://smart-backend-2zlf.onrender.com";
 
+  // ✅ FIX: stable user (prevents infinite loop)
+  const user = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem("user") || "{}");
+    } catch (err) {
+      return {};
+    }
+  }, []);
+
+  const userId = user?._id;
+
+  // ================= FETCH ASSIGNMENTS =================
   const fetchAssignments = useCallback(async () => {
     try {
       setLoading(true);
@@ -21,12 +33,17 @@ function Assignments() {
 
       setAssignments(data);
 
+      // build submitted map safely
       const map = {};
 
       data.forEach((a) => {
-        if (Array.isArray(a?.submissions) && user?._id) {
-          map[a._id] = a.submissions.some(
-            (s) => s.studentId === user._id
+        const submissions = Array.isArray(a?.submissions)
+          ? a.submissions
+          : [];
+
+        if (userId) {
+          map[a._id] = submissions.some(
+            (s) => s?.studentId === userId
           );
         }
       });
@@ -38,12 +55,13 @@ function Assignments() {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [userId]);
 
   useEffect(() => {
     fetchAssignments();
   }, [fetchAssignments]);
 
+  // ================= TIMER =================
   const getTimeLeft = (deadline) => {
     if (!deadline) return "No deadline";
 
@@ -57,19 +75,20 @@ function Assignments() {
     return `${h}h ${m}m ${s}s`;
   };
 
+  // ================= SUBMIT =================
   const submitAssignment = async (e, assignment) => {
     e.preventDefault();
 
     const file = files[assignment._id];
 
     if (!file) return alert("Select file first");
-    if (!user?._id) return alert("User not found");
+    if (!userId) return alert("User not found");
 
     const formData = new FormData();
     formData.append("assignmentId", assignment._id);
-    formData.append("studentId", user._id);
-    formData.append("studentName", user.name || "");
-    formData.append("studentEmail", user.email || "");
+    formData.append("studentId", userId);
+    formData.append("studentName", user?.name || "");
+    formData.append("studentEmail", user?.email || "");
     formData.append("file", file);
 
     try {
@@ -87,9 +106,8 @@ function Assignments() {
     }
   };
 
-  if (loading) {
-    return <h2 className="title">Loading assignments...</h2>;
-  }
+  // ================= UI =================
+  if (loading) return <h2 className="title">Loading assignments...</h2>;
 
   return (
     <div className="page">
@@ -112,7 +130,10 @@ function Assignments() {
                 <p>{a.description}</p>
 
                 <p className="meta">
-                  📅 {new Date(a.deadline).toDateString()}
+                  📅{" "}
+                  {a.deadline
+                    ? new Date(a.deadline).toLocaleString()
+                    : "No deadline"}
                 </p>
 
                 <p className="timer">
