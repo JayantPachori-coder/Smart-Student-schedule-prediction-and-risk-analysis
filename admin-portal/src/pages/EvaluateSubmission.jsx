@@ -3,10 +3,8 @@ import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import "./Evaluation.css";
 
-// ✅ Use environment or fallback (safe for deployment)
-const API =
-  process.env.REACT_APP_API_URL ||
-  "https://smart-backend-2zlf.onrender.com";
+// ✅ Central API (DO NOT use localhost in production)
+const API = "https://smart-backend-2zlf.onrender.com";
 
 export default function EvaluateSubmission() {
   const { id } = useParams();
@@ -27,11 +25,11 @@ export default function EvaluateSubmission() {
 
         const res = await axios.get(`${API}/api/submissions`);
 
-        const submissions = res.data?.data || [];
+        const submissions = res?.data?.data || [];
 
         const found = submissions.find((x) => x._id === id);
 
-        setData(found || null);
+        setData(found ?? null);
       } catch (err) {
         console.error("Fetch error:", err);
         setData(null);
@@ -40,7 +38,7 @@ export default function EvaluateSubmission() {
       }
     };
 
-    fetchData();
+    if (id) fetchData();
   }, [id]);
 
   /* =========================
@@ -48,11 +46,14 @@ export default function EvaluateSubmission() {
   ========================= */
   const submit = async () => {
     try {
-      if (!marks) return alert("Please enter marks");
+      if (!marks) {
+        alert("Please enter marks");
+        return;
+      }
 
       await axios.post(`${API}/api/submissions/evaluate`, {
         submissionId: id,
-        marks,
+        marks: Number(marks), // ✅ ensure number type
         feedback,
       });
 
@@ -60,7 +61,7 @@ export default function EvaluateSubmission() {
 
       navigate(-1);
     } catch (err) {
-      console.error(err);
+      console.error("Evaluation error:", err);
       alert("Error evaluating submission");
     }
   };
@@ -81,7 +82,7 @@ export default function EvaluateSubmission() {
   ========================= */
   return (
     <div className="page eval-grid">
-      
+
       {/* LEFT SIDE */}
       <div className="card glass">
         <h2>📄 Submission</h2>
@@ -128,6 +129,7 @@ export default function EvaluateSubmission() {
           Submit Evaluation 🚀
         </button>
       </div>
+
     </div>
   );
 }
