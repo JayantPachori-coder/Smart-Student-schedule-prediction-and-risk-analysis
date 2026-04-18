@@ -5,7 +5,6 @@ import html2canvas from "html2canvas";
 import "./SchedulePrediction.css";
 
 const SchedulePrediction = () => {
-
   const token = localStorage.getItem("token");
 
   const [subjects, setSubjects] = useState([
@@ -16,7 +15,9 @@ const SchedulePrediction = () => {
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState([]);
 
-  // ✅ FIXED: wrapped in useCallback
+  // -----------------------------
+  // FETCH HISTORY
+  // -----------------------------
   const fetchHistory = useCallback(async () => {
     try {
       const res = await getSchedules(token);
@@ -26,14 +27,25 @@ const SchedulePrediction = () => {
     }
   }, [token]);
 
-  // ✅ FIXED: dependency added
   useEffect(() => {
     fetchHistory();
   }, [fetchHistory]);
 
+  // -----------------------------
+  // HANDLE INPUT CHANGE
+  // -----------------------------
   const handleChange = (idx, field, value) => {
     const updated = [...subjects];
-    updated[idx][field] = value;
+
+    if (["difficulty", "performance", "hours"].includes(field)) {
+      // ✅ allow only non-negative integers
+      if (value === "" || /^\d*$/.test(value)) {
+        updated[idx][field] = value;
+      }
+    } else {
+      updated[idx][field] = value;
+    }
+
     setSubjects(updated);
   };
 
@@ -45,8 +57,7 @@ const SchedulePrediction = () => {
   };
 
   const removeSubject = (idx) => {
-    const updated = subjects.filter((_, i) => i !== idx);
-    setSubjects(updated);
+    setSubjects(subjects.filter((_, i) => i !== idx));
   };
 
   // -----------------------------
@@ -60,13 +71,24 @@ const SchedulePrediction = () => {
         .filter(sub => sub.name.trim() !== "")
         .map(sub => ({
           name: sub.name,
-          difficulty: Number(sub.difficulty) || 1,
-          performance: Number(sub.performance) || 1,
-          hours: Number(sub.hours) || 1
+          difficulty: sub.difficulty === "" ? 0 : Number(sub.difficulty),
+          performance: sub.performance === "" ? 0 : Number(sub.performance),
+          hours: sub.hours === "" ? 0 : Number(sub.hours)
         }));
 
       if (formattedSubjects.length === 0) {
         alert("Please add at least one valid subject ❌");
+        setLoading(false);
+        return;
+      }
+
+      // ✅ extra safety (no negatives)
+      if (formattedSubjects.some(sub =>
+        sub.difficulty < 0 ||
+        sub.performance < 0 ||
+        sub.hours < 0
+      )) {
+        alert("Values cannot be negative ❌");
         setLoading(false);
         return;
       }
@@ -87,7 +109,6 @@ const SchedulePrediction = () => {
       }
 
       fetchHistory();
-
     } catch (err) {
       console.error("FRONTEND ERROR:", err.response?.data || err.message);
       alert(err.response?.data?.error || "Error generating schedule ❌");
@@ -129,22 +150,22 @@ const SchedulePrediction = () => {
             />
 
             <input
-              type="number"
-              placeholder="Difficulty (1-100)"
+              type="text"
+              placeholder="Difficulty (0-100)"
               value={sub.difficulty}
               onChange={(e) => handleChange(idx, "difficulty", e.target.value)}
             />
 
             <input
-              type="number"
-              placeholder="Performance (1-100)"
+              type="text"
+              placeholder="Performance (0-100)"
               value={sub.performance}
               onChange={(e) => handleChange(idx, "performance", e.target.value)}
             />
 
             <input
-              type="number"
-              placeholder="Hours"
+              type="text"
+              placeholder="Hours (0+)"
               value={sub.hours}
               onChange={(e) => handleChange(idx, "hours", e.target.value)}
             />
