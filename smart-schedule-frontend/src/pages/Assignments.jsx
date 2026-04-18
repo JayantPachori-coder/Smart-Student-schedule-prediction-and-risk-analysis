@@ -9,30 +9,22 @@ function Assignments() {
   const [submittedMap, setSubmittedMap] = useState({});
   const [loading, setLoading] = useState(true);
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   const fetchAssignments = useCallback(async () => {
     try {
       setLoading(true);
 
-      // ✅ FIXED
       const res = await api.get("/api/assignments");
 
-      const data =
-        Array.isArray(res.data)
-          ? res.data
-          : Array.isArray(res.data?.data)
-          ? res.data.data
-          : Array.isArray(res.data?.assignments)
-          ? res.data.assignments
-          : [];
+      const data = res.data?.data || [];
 
       setAssignments(data);
 
       const map = {};
 
       data.forEach((a) => {
-        if (a?.submissions && user?._id) {
+        if (Array.isArray(a?.submissions) && user?._id) {
           map[a._id] = a.submissions.some(
             (s) => s.studentId === user._id
           );
@@ -69,6 +61,7 @@ function Assignments() {
     e.preventDefault();
 
     const file = files[assignment._id];
+
     if (!file) return alert("Select file first");
     if (!user?._id) return alert("User not found");
 
@@ -80,7 +73,6 @@ function Assignments() {
     formData.append("file", file);
 
     try {
-      // ✅ FIXED
       await api.post("/api/assignments/submit", formData);
 
       setSubmittedMap((prev) => ({
@@ -88,7 +80,7 @@ function Assignments() {
         [assignment._id]: true,
       }));
 
-      alert("Submitted Successfully");
+      alert("Submitted Successfully 🚀");
     } catch (err) {
       console.error(err);
       alert("Submission Failed");
@@ -123,7 +115,9 @@ function Assignments() {
                   📅 {new Date(a.deadline).toDateString()}
                 </p>
 
-                <p className="timer">⏳ {getTimeLeft(a.deadline)}</p>
+                <p className="timer">
+                  ⏳ {getTimeLeft(a.deadline)}
+                </p>
 
                 {expired ? (
                   <p className="closed">🔒 Closed</p>
