@@ -13,22 +13,41 @@ export default function EvaluateSubmission() {
   const [feedback, setFeedback] = useState({});
   const [loading, setLoading] = useState(true);
 
-  // ================= FETCH =================
+  /* =========================
+     FETCH WITH RETRY
+  ========================= */
   useEffect(() => {
     const fetchSubmissions = async () => {
       try {
         setLoading(true);
 
-        const res = await axios.get(
-          `${API}/api/submissions/assignment/${id}`
-        );
+        console.log("📌 Assignment ID:", id);
 
-        console.log("API RESPONSE:", res.data);
+        let res = null;
+
+        // 🔁 Retry logic (fixes Render cold start)
+        for (let i = 0; i < 3; i++) {
+          try {
+            res = await axios.get(
+              `${API}/api/submissions/assignment/${id}`
+            );
+            break;
+          } catch (err) {
+            console.warn("Retrying request...", i + 1);
+            await new Promise((r) => setTimeout(r, 2000)); // wait 2s
+          }
+        }
+
+        if (!res) {
+          throw new Error("Server not responding");
+        }
+
+        console.log("✅ API RESPONSE:", res.data);
 
         setSubmissions(res?.data?.data || []);
 
       } catch (err) {
-        console.error("Error:", err.message);
+        console.error("❌ FINAL ERROR:", err);
         setSubmissions([]);
       } finally {
         setLoading(false);
@@ -38,7 +57,9 @@ export default function EvaluateSubmission() {
     if (id) fetchSubmissions();
   }, [id]);
 
-  // ================= SUBMIT =================
+  /* =========================
+     SUBMIT EVALUATION
+  ========================= */
   const handleSubmit = async (submissionId) => {
     try {
       if (!marks[submissionId]) {
@@ -52,28 +73,51 @@ export default function EvaluateSubmission() {
         feedback: feedback[submissionId] || "",
       });
 
-      alert("Evaluated 🚀");
+      alert("Evaluation submitted 🚀");
+
+      // ✅ Update UI instantly
+      setSubmissions((prev) =>
+        prev.map((s) =>
+          s._id === submissionId
+            ? { ...s, status: "evaluated" }
+            : s
+        )
+      );
 
     } catch (err) {
-      console.error(err.message);
-      alert("Failed");
+      console.error("Submit Error:", err);
+      alert("Failed to submit evaluation");
     }
   };
 
-  // ================= UI =================
-  if (loading) return <div className="page">Loading...</div>;
+  /* =========================
+     UI STATES
+  ========================= */
+  if (loading) {
+    return <div className="page">⏳ Loading submissions...</div>;
+  }
 
-  if (submissions.length === 0)
-    return <div className="page">No submissions found ❌</div>;
+  if (!loading && submissions.length === 0) {
+    return (
+      <div className="page">
+        ❌ No submissions found
+        <br />
+        <small>Check assignment ID or backend route</small>
+      </div>
+    );
+  }
 
+  /* =========================
+     UI
+  ========================= */
   return (
     <div className="page eval-grid">
       {submissions.map((s) => (
         <div className="card glass" key={s._id}>
-          <h3>{s.assignmentId?.title}</h3>
+          <h3>{s.assignmentId?.title || "Assignment"}</h3>
 
-          <p><b>Student:</b> {s.studentId?.firstName}</p>
-          <p><b>Email:</b> {s.studentId?.email}</p>
+          <p><b>Student:</b> {s.studentId?.firstName || "N/A"}</p>
+          <p><b>Email:</b> {s.studentId?.email || "N/A"}</p>
           <p><b>Status:</b> {s.status}</p>
 
           {s.file && (
@@ -86,25 +130,39 @@ export default function EvaluateSubmission() {
             </a>
           )}
 
+          {/* MARKS */}
           <input
             type="number"
             placeholder="Marks"
             value={marks[s._id] || ""}
             onChange={(e) =>
-              setMarks({ ...marks, [s._id]: e.target.value })
+              setMarks((prev) => ({
+                ...prev,
+                [s._id]: e.target.value,
+              }))
             }
           />
 
+          {/* FEEDBACK */}
           <textarea
             placeholder="Feedback"
             value={feedback[s._id] || ""}
             onChange={(e) =>
-              setFeedback({ ...feedback, [s._id]: e.target.value })
+              setFeedback((prev) => ({
+                ...prev,
+                [s._id]: e.target.value,
+              }))
             }
           />
 
-          <button onClick={() => handleSubmit(s._id)}>
-            Submit Evaluation 🚀
+          {/* BUTTON */}
+          <button
+            onClick={() => handleSubmit(s._id)}
+            disabled={s.status === "evaluated"}
+          >
+            {s.status === "evaluated"
+              ? "✅ Evaluated"
+              : "Submit Evaluation 🚀"}
           </button>
         </div>
       ))}
