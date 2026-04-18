@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import "./Login.css";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../services/authService";
-import { GoogleLogin } from "@react-oauth/google";
-import api from "../api"; // ✅ use this
 
 function Login() {
   const navigate = useNavigate();
@@ -45,24 +43,6 @@ function Login() {
     setLoading(false);
   };
 
-  // 🔹 GOOGLE LOGIN (FIXED)
-  const handleGoogleSuccess = async (credentialResponse) => {
-    try {
-      const res = await api.post(
-        "/auth/google",
-        { token: credentialResponse.credential }
-      );
-
-      localStorage.setItem("user", JSON.stringify(res.data.user));
-
-      navigate("/home");
-
-    } catch (err) {
-      console.log(err);
-      alert("Google login failed");
-    }
-  };
-
   return (
     <div className="blur-bg">
       <div className="login-container">
@@ -91,14 +71,7 @@ function Login() {
             {loading ? "Logging in..." : "Login"}
           </button>
 
-          <div className="divider"><span>OR</span></div>
-
-          <div className="google-wrapper">
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={() => alert("Google Login Failed")}
-            />
-          </div>
+          {/* ✅ Removed Google Login */}
 
           <p onClick={() => navigate("/forgot-password")} className="link">
             Forgot Password?
