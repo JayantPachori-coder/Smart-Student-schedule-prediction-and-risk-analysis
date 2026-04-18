@@ -9,13 +9,11 @@ function Assignments() {
   const [submittedMap, setSubmittedMap] = useState({});
   const [loading, setLoading] = useState(true);
 
-  const API = "https://smart-backend-2zlf.onrender.com";
-
-  // ✅ FIX: stable user (prevents infinite loop)
+  // ✅ stable user (prevents re-renders / loops)
   const user = useMemo(() => {
     try {
       return JSON.parse(localStorage.getItem("user") || "{}");
-    } catch (err) {
+    } catch {
       return {};
     }
   }, []);
@@ -28,12 +26,10 @@ function Assignments() {
       setLoading(true);
 
       const res = await api.get("/api/assignments");
-
       const data = res.data?.data || [];
 
       setAssignments(data);
 
-      // build submitted map safely
       const map = {};
 
       data.forEach((a) => {
@@ -136,9 +132,7 @@ function Assignments() {
                     : "No deadline"}
                 </p>
 
-                <p className="timer">
-                  ⏳ {getTimeLeft(a.deadline)}
-                </p>
+                <p className="timer">⏳ {getTimeLeft(a.deadline)}</p>
 
                 {expired ? (
                   <p className="closed">🔒 Closed</p>
