@@ -22,11 +22,27 @@ export default function EvaluateSubmission() {
       try {
         setLoading(true);
 
-        const res = await axios.get(`${API}/api/submissions/${id}`);
+        console.log("Fetching for assignment ID:", id);
 
-        setSubmission(res?.data?.data || null);
+        const res = await axios.get(
+          `${API}/api/submissions/assignment/${id}`
+        );
+
+        console.log("API Response:", res.data);
+
+        // assuming backend returns array
+        const data = res?.data?.data;
+
+        if (Array.isArray(data)) {
+          setSubmission(data[0] || null); // take first submission
+        } else {
+          setSubmission(data || null);
+        }
       } catch (err) {
-        console.error("Error fetching submission:", err);
+        console.error(
+          "Error fetching submission:",
+          err?.response?.data || err.message
+        );
         setSubmission(null);
       } finally {
         setLoading(false);
@@ -47,7 +63,7 @@ export default function EvaluateSubmission() {
       }
 
       await axios.post(`${API}/api/submissions/evaluate`, {
-        submissionId: id,
+        submissionId: submission?._id, // IMPORTANT FIX
         marks: Number(marks),
         feedback: feedback.trim(),
       });
@@ -55,7 +71,10 @@ export default function EvaluateSubmission() {
       alert("Evaluation submitted successfully 🚀");
       navigate(-1);
     } catch (err) {
-      console.error("Evaluation error:", err);
+      console.error(
+        "Evaluation error:",
+        err?.response?.data || err.message
+      );
       alert("Failed to submit evaluation");
     }
   };
@@ -68,7 +87,11 @@ export default function EvaluateSubmission() {
   }
 
   if (!submission) {
-    return <div className="page">Submission not found ❌</div>;
+    return (
+      <div className="page">
+        No submission found for this assignment ❌
+      </div>
+    );
   }
 
   /* =========================
@@ -97,7 +120,8 @@ export default function EvaluateSubmission() {
         </p>
 
         <p>
-          <b>Status:</b> {submission?.status || "submitted"}
+          <b>Status:</b>{" "}
+          {submission?.status || "submitted"}
         </p>
 
         {submission?.file && (
