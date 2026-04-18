@@ -4,7 +4,24 @@ import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 
 dotenv.config();
+export const getStudentSubmissions = async (req, res) => {
+  try {
+    const data = await Submission.find({
+      studentId: req.params.id,
+    });
 
+    res.json({
+      success: true,
+      data,
+    });
+  } catch (err) {
+    console.error("Get Student Submissions Error:", err);
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  }
+};
 /* =========================
    EMAIL SETUP (INLINE)
 ========================= */
