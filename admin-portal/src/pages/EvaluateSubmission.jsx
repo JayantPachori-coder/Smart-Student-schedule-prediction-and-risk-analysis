@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api"; // ✅ USE THIS INSTEAD OF AXIOS
 import { useParams } from "react-router-dom";
 import "./Evaluation.css";
-
-const API = "https://smart-backend-2zlf.onrender.com";
 
 export default function EvaluateSubmission() {
   const { id } = useParams();
@@ -25,22 +23,18 @@ export default function EvaluateSubmission() {
 
         let res = null;
 
-        // 🔁 Retry logic (fixes Render cold start)
+        // 🔁 Retry logic (Render cold start fix)
         for (let i = 0; i < 3; i++) {
           try {
-            res = await axios.get(
-              `${API}/api/submissions/assignment/${id}`
-            );
+            res = await api.get(`/api/submissions/assignment/${id}`);
             break;
           } catch (err) {
-            console.warn("Retrying request...", i + 1);
-            await new Promise((r) => setTimeout(r, 2000)); // wait 2s
+            console.warn("Retrying...", i + 1);
+            await new Promise((r) => setTimeout(r, 2000));
           }
         }
 
-        if (!res) {
-          throw new Error("Server not responding");
-        }
+        if (!res) throw new Error("Server not responding");
 
         console.log("✅ API RESPONSE:", res.data);
 
@@ -67,7 +61,7 @@ export default function EvaluateSubmission() {
         return;
       }
 
-      await axios.post(`${API}/api/submissions/evaluate`, {
+      await api.post(`/api/submissions/evaluate`, {
         submissionId,
         marks: Number(marks[submissionId]),
         feedback: feedback[submissionId] || "",
@@ -102,7 +96,7 @@ export default function EvaluateSubmission() {
       <div className="page">
         ❌ No submissions found
         <br />
-        <small>Check assignment ID or backend route</small>
+        <small>Check assignment ID or backend</small>
       </div>
     );
   }
@@ -122,7 +116,7 @@ export default function EvaluateSubmission() {
 
           {s.file && (
             <a
-              href={`${API}/uploads/${s.file}`}
+              href={`https://smart-backend-2zlf.onrender.com/uploads/${s.file}`}
               target="_blank"
               rel="noreferrer"
             >
