@@ -9,7 +9,7 @@ function Assignments() {
   const [submittedMap, setSubmittedMap] = useState({});
   const [loading, setLoading] = useState(true);
 
-  // ✅ stable user (prevents re-renders / loops)
+  // ✅ Get logged-in user safely
   const user = useMemo(() => {
     try {
       return JSON.parse(localStorage.getItem("user") || "{}");
@@ -28,6 +28,8 @@ function Assignments() {
       const res = await api.get("/api/assignments");
       const data = res.data?.data || [];
 
+      console.log("Assignments API:", data);
+
       setAssignments(data);
 
       const map = {};
@@ -39,7 +41,7 @@ function Assignments() {
 
         if (userId) {
           map[a._id] = submissions.some(
-            (s) => s?.studentId === userId
+            (s) => s?.studentId?._id === userId // ✅ FIXED
           );
         }
       });
@@ -80,6 +82,11 @@ function Assignments() {
     if (!file) return alert("Select file first");
     if (!userId) return alert("User not found");
 
+    // ✅ Prevent duplicate submission
+    if (submittedMap[assignment._id]) {
+      return alert("Already submitted");
+    }
+
     const formData = new FormData();
     formData.append("assignmentId", assignment._id);
     formData.append("studentId", userId);
@@ -90,6 +97,7 @@ function Assignments() {
     try {
       await api.post("/api/assignments/submit", formData);
 
+      // ✅ instant UI update
       setSubmittedMap((prev) => ({
         ...prev,
         [assignment._id]: true,
@@ -97,7 +105,7 @@ function Assignments() {
 
       alert("Submitted Successfully 🚀");
     } catch (err) {
-      console.error(err);
+      console.error("Submit error:", err);
       alert("Submission Failed");
     }
   };
@@ -112,7 +120,10 @@ function Assignments() {
       <div className="grid">
         {assignments.length > 0 ? (
           assignments.map((a) => {
-            const expired = new Date(a.deadline) < new Date();
+            const expired = a.deadline
+              ? new Date(a.deadline) < new Date()
+              : false;
+
             const submitted = submittedMap[a._id];
 
             return (
@@ -132,8 +143,11 @@ function Assignments() {
                     : "No deadline"}
                 </p>
 
-                <p className="timer">⏳ {getTimeLeft(a.deadline)}</p>
+                <p className="timer">
+                  ⏳ {getTimeLeft(a.deadline)}
+                </p>
 
+                {/* ================= STATUS ================= */}
                 {expired ? (
                   <p className="closed">🔒 Closed</p>
                 ) : submitted ? (
