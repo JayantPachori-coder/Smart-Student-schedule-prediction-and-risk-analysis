@@ -10,8 +10,10 @@ export default function CreateAssignment() {
   const [description, setDescription] = useState("");
   const [deadline, setDeadline] = useState("");
 
+  const API = "https://smart-backend-2zlf.onrender.com";
+
   /* =========================
-     SAFE TEACHER (NO ERROR)
+     SAFE TEACHER
   ========================= */
   let teacher = {};
 
@@ -21,7 +23,7 @@ export default function CreateAssignment() {
     teacher = {};
   }
 
-  // 🔥 FALLBACK (YOUR PROVIDED DATA)
+  // fallback only if nothing in storage
   if (!teacher?._id) {
     teacher = {
       _id: "69da1965649ddd3832c688f0",
@@ -40,14 +42,10 @@ export default function CreateAssignment() {
         if (!teacher?.email) return;
 
         const res = await axios.get(
-          `http://localhost:5000/api/auth/users?email=${teacher.email}`
+          `${API}/api/auth/users?email=${teacher.email}`
         );
 
-        const data = Array.isArray(res.data)
-          ? res.data
-          : res.data?.data || [];
-
-        setStudents(data);
+        setStudents(res.data?.data || res.data || []);
       } catch (err) {
         console.log("Student fetch error:", err);
       }
@@ -88,21 +86,17 @@ export default function CreateAssignment() {
         title: title.trim(),
         description: description.trim(),
         deadline: new Date(deadline).toISOString(),
-
         teacherId: teacher._id,
         teacherEmail: teacher.email,
-
         assignedTo: selectedStudents.map((s) => s._id),
       };
 
-      console.log("PAYLOAD:", payload);
-
       const res = await axios.post(
-        "http://localhost:5000/api/assignments",
+        `${API}/api/assignments`,
         payload
       );
 
-      if (res.data?.success || res.data?.data) {
+      if (res.data?.success || res.data?._id || res.data?.data) {
         alert("Assignment Created 🚀");
 
         setTitle("");
@@ -149,7 +143,6 @@ export default function CreateAssignment() {
           Assign to Students 🚀
         </button>
 
-        {/* SELECTED STUDENTS */}
         <div className="selected-box">
           <h3>✅ Selected Students</h3>
 
@@ -170,27 +163,24 @@ export default function CreateAssignment() {
         <h2>👨‍🎓 Select Students</h2>
 
         <div className="student-list">
-          {Array.isArray(students) &&
-            students.map((stu) => {
-              const isSelected = selectedStudents.some(
-                (s) => s._id === stu._id
-              );
+          {students.map((stu) => {
+            const isSelected = selectedStudents.some(
+              (s) => s._id === stu._id
+            );
 
-              return (
-                <div
-                  key={stu._id}
-                  className={`student-item ${
-                    isSelected ? "active" : ""
-                  }`}
-                  onClick={() => toggleStudent(stu)}
-                >
-                  <h4>{stu.firstName || stu.username}</h4>
-                  <p>{stu.email}</p>
+            return (
+              <div
+                key={stu._id}
+                className={`student-item ${isSelected ? "active" : ""}`}
+                onClick={() => toggleStudent(stu)}
+              >
+                <h4>{stu.firstName || stu.username}</h4>
+                <p>{stu.email}</p>
 
-                  {isSelected && <span className="tick">✔</span>}
-                </div>
-              );
-            })}
+                {isSelected && <span className="tick">✔</span>}
+              </div>
+            );
+          })}
         </div>
       </div>
 
