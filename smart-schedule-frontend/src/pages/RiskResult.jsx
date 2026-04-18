@@ -12,10 +12,6 @@ import "./RiskResult.css";
 
 function RiskResult() {
   const location = useLocation();
-
-  // =========================
-  // SAFE STATE HANDLING
-  // =========================
   const state = location?.state;
 
   if (!state?.result) {
@@ -29,22 +25,17 @@ function RiskResult() {
 
   const result = state.result;
 
-  // =========================
-  // SAFE VALUES
-  // =========================
   const confidence = Number(result?.confidence ?? 0);
   const riskLevel = result?.risk_level || "Unknown";
   const riskScore = Number(result?.risk_score ?? 0);
 
-  const history = Array.isArray(state?.history)
-    ? state.history
-    : [];
+  const history = Array.isArray(state?.history) ? state.history : [];
 
   const isHighRisk = riskLevel === "High Risk";
   const isMediumRisk = riskLevel === "Medium Risk";
 
   // =========================
-  // PIE DATA (SAFE)
+  // DATA
   // =========================
   const pieData = [
     { name: "Confidence", value: confidence * 100 },
@@ -53,50 +44,180 @@ function RiskResult() {
 
   const PIE_COLORS = ["#00f2ff", "#ff4d4d"];
 
-  // =========================
-  // LINE DATA (SAFE)
-  // =========================
   const trendData = history.map((item) => ({
     date: item?.createdAt
       ? new Date(item.createdAt).toLocaleDateString()
       : "N/A",
-
     risk:
       item?.riskLevel === "Low Risk" ? 1 :
       item?.riskLevel === "Medium Risk" ? 2 : 3
   }));
 
-  // =========================
-  // AI INSIGHTS
-  // =========================
-  const insights = isHighRisk
-    ? ["🚨 Severe decline", "❌ Missing assignments", "📉 Low performance"]
-    : isMediumRisk
-    ? ["⚠️ Irregular study", "📊 Medium performance"]
-    : ["✅ Stable performance", "📈 Good consistency"];
+  const trendDirection =
+    trendData.length >= 2
+      ? trendData[trendData.length - 1].risk -
+        trendData[trendData.length - 2].risk
+      : 0;
 
-  const recommendations = isHighRisk
-    ? ["🔴 Study 4+ hrs/day", "📚 Focus weak subjects", "⏰ Strict schedule"]
-    : isMediumRisk
-    ? ["📖 Study 2–3 hrs/day", "📝 Clear backlog"]
-    : ["📘 Maintain routine", "✨ Keep consistency"];
+  const consistencyScore =
+    trendData.length > 0
+      ? trendData.reduce((sum, item) => sum + item.risk, 0) /
+        trendData.length
+      : 0;
 
+  const riskPercent = Math.min(100, Math.max(0, riskScore * 10));
+
+  // =========================
+  // GAUGE
+  // =========================
+  const GaugeMeter = ({ value }) => {
+    const data = [
+      { name: "Risk", value },
+      { name: "Remaining", value: 100 - value }
+    ];
+
+    const getColor = () => {
+      if (value < 40) return "#00ff99";
+      if (value < 70) return "#ffc107";
+      return "#ff4d4d";
+    };
+
+    return (
+      <div style={{ width: "100%", height: 250 }}>
+        <ResponsiveContainer>
+          <PieChart>
+            <Pie
+              data={data}
+              startAngle={180}
+              endAngle={0}
+              innerRadius={70}
+              outerRadius={100}
+              dataKey="value"
+            >
+              <Cell fill={getColor()} />
+              <Cell fill="#222" />
+            </Pie>
+          </PieChart>
+        </ResponsiveContainer>
+
+        <div style={{
+          position: "relative",
+          top: "-140px",
+          textAlign: "center",
+          fontSize: "24px",
+          fontWeight: "bold",
+          color: getColor()
+        }}>
+          {value.toFixed(0)}%
+        </div>
+      </div>
+    );
+  };
+
+  // =========================
+  // 🔥 AI INSIGHTS (6–10)
+  // =========================
+  const insights = [];
+
+  // Risk based
+  if (isHighRisk) {
+    insights.push("🚨 Critical academic risk detected");
+    insights.push("📉 Performance is significantly declining");
+  } else if (isMediumRisk) {
+    insights.push("⚠️ Moderate academic risk detected");
+  } else {
+    insights.push("✅ Stable academic performance");
+  }
+
+  // Confidence
+  if (confidence > 0.8) {
+    insights.push("🔍 High confidence prediction");
+  } else if (confidence > 0.5) {
+    insights.push("📊 Moderate confidence level");
+  } else {
+    insights.push("❓ Low confidence — insufficient data");
+  }
+
+  // Trend
+  if (trendDirection > 0) {
+    insights.push("📈 Risk is increasing over time");
+  } else if (trendDirection < 0) {
+    insights.push("📉 Risk is improving gradually");
+  } else {
+    insights.push("➖ Risk trend is stable");
+  }
+
+  // Consistency
+  if (consistencyScore > 2.5) {
+    insights.push("⚠️ Poor consistency in academic performance");
+  } else if (consistencyScore > 1.5) {
+    insights.push("📊 Moderate consistency observed");
+  } else {
+    insights.push("✅ High consistency in studies");
+  }
+
+  // Extra insights
+  insights.push("📚 Study pattern analysis completed");
+  insights.push("🧠 Behavioral trends evaluated");
+  insights.push("📊 Historical performance considered");
+
+  // =========================
+  // 🎯 RECOMMENDATIONS (6–10)
+  // =========================
+  const recommendations = [];
+
+  if (isHighRisk) {
+    recommendations.push("🔴 Immediate action required");
+    recommendations.push("📚 Focus on weakest subjects");
+    recommendations.push("⏰ Study 4–6 hrs daily");
+    recommendations.push("🧑‍🏫 Seek mentor guidance");
+    recommendations.push("📅 Follow strict timetable");
+    recommendations.push("❌ Avoid distractions");
+    recommendations.push("📝 Complete pending work");
+    recommendations.push("📊 Practice past papers");
+  } else if (isMediumRisk) {
+    recommendations.push("📖 Study 2–4 hrs daily");
+    recommendations.push("📝 Clear backlog subjects");
+    recommendations.push("📊 Revise weak topics");
+    recommendations.push("⏰ Improve time management");
+    recommendations.push("📅 Follow weekly plan");
+    recommendations.push("🎯 Focus on concepts");
+    recommendations.push("📚 Practice regularly");
+  } else {
+    recommendations.push("📘 Maintain routine");
+    recommendations.push("🚀 Try advanced questions");
+    recommendations.push("📊 Continue revision");
+    recommendations.push("🎯 Improve accuracy");
+    recommendations.push("📅 Plan ahead");
+    recommendations.push("🧠 Take mock tests");
+  }
+
+  if (trendDirection > 0) {
+    recommendations.push("⚠️ Risk rising — act fast");
+    recommendations.push("📉 Fix weak areas quickly");
+  }
+
+  if (confidence < 0.5) {
+    recommendations.push("📊 Add more data inputs");
+  }
+
+  recommendations.push("💡 Take short breaks");
+  recommendations.push("😴 Maintain proper sleep cycle");
+
+  // =========================
+  // UI
+  // =========================
   return (
     <motion.div className="dashboard-modern">
 
-      {/* HEADER */}
       <div className="header">
         <h1>🍎 AI Risk Dashboard</h1>
       </div>
 
-      {/* ALERT */}
       {isHighRisk && (
-        <div className="risk-alert">
-          ⚠️ HIGH RISK DETECTED
-        </div>
+        <div className="risk-alert">⚠️ HIGH RISK DETECTED</div>
       )}
 
-      {/* KPI SECTION */}
       <div className="kpi-grid">
 
         <div className="kpi-card risk">
@@ -105,26 +226,23 @@ function RiskResult() {
           <small>Risk Score: {riskScore}</small>
         </div>
 
-        {/* PIE CHART */}
+        <div className="kpi-card gauge">
+          <h3>Risk Level</h3>
+          <GaugeMeter value={riskPercent} />
+        </div>
+
         <div className="kpi-card pie">
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
-              <Pie
-                data={pieData}
-                dataKey="value"
-                outerRadius={80}
-                label
-              >
-                {pieData.map((_, index) => (
-                  <Cell key={index} fill={PIE_COLORS[index]} />
+              <Pie data={pieData} dataKey="value" outerRadius={80}>
+                {pieData.map((_, i) => (
+                  <Cell key={i} fill={PIE_COLORS[i]} />
                 ))}
               </Pie>
-              <Tooltip />
             </PieChart>
           </ResponsiveContainer>
         </div>
 
-        {/* LINE CHART */}
         <div className="kpi-card chart">
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={trendData}>
@@ -132,39 +250,26 @@ function RiskResult() {
               <XAxis dataKey="date" />
               <YAxis />
               <Tooltip />
-              <Line
-                type="monotone"
-                dataKey="risk"
-                stroke="#00f2ff"
-                strokeWidth={3}
-                dot={{ r: 4 }}
-              />
+              <Line type="monotone" dataKey="risk" stroke="#00f2ff" />
             </LineChart>
           </ResponsiveContainer>
         </div>
 
       </div>
 
-      {/* CONTENT SECTION */}
       <div className="content-grid">
 
         <div className="glass-card">
           <h3>🧠 AI Insights</h3>
-
-          {(insights || []).map((item, i) => (
-            <div key={i} className="chip">
-              {item}
-            </div>
+          {insights.slice(0, 8).map((item, i) => (
+            <div key={i} className="chip">{item}</div>
           ))}
         </div>
 
         <div className="glass-card">
           <h3>🎯 Recommendations</h3>
-
-          {(recommendations || []).map((item, i) => (
-            <div key={i} className="chip green">
-              {item}
-            </div>
+          {recommendations.slice(0, 8).map((item, i) => (
+            <div key={i} className="chip green">{item}</div>
           ))}
         </div>
 
