@@ -14,7 +14,10 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
   };
 
   const handleLogin = async (e) => {
@@ -23,18 +26,19 @@ export default function Login() {
 
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/teacher/login",
+        "https://smart-backend-2zlf.onrender.com/api/teacher/login",
         form
       );
 
-      // ✅ SAVE TOKEN
+      // ✅ Save token & user
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("teacher", JSON.stringify(res.data.teacher));
 
-      // 🚀 REDIRECT TO DASHBOARD
+      // 🚀 Redirect
       navigate("/dashboard");
 
     } catch (err) {
+      console.error(err);
       alert(err.response?.data?.message || "Login failed");
     }
 
@@ -53,6 +57,7 @@ export default function Login() {
             type="email"
             name="email"
             placeholder="Enter Email"
+            value={form.email}
             onChange={handleChange}
             required
           />
@@ -61,6 +66,7 @@ export default function Login() {
             type="password"
             name="password"
             placeholder="Enter Password"
+            value={form.password}
             onChange={handleChange}
             required
           />
