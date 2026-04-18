@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
-import api from "../api"; // ✅ USE THIS INSTEAD OF AXIOS
+import axios from "axios";
 import { useParams } from "react-router-dom";
 import "./Evaluation.css";
+
+const BASE_URL = "https://smart-backend-2zlf.onrender.com";
 
 export default function EvaluateSubmission() {
   const { id } = useParams();
@@ -23,10 +25,12 @@ export default function EvaluateSubmission() {
 
         let res = null;
 
-        // 🔁 Retry logic (Render cold start fix)
+        // 🔁 Retry logic (Render cold start)
         for (let i = 0; i < 3; i++) {
           try {
-            res = await api.get(`/api/submissions/assignment/${id}`);
+            res = await axios.get(
+              `${BASE_URL}/api/submissions/assignment/${id}`
+            );
             break;
           } catch (err) {
             console.warn("Retrying...", i + 1);
@@ -61,7 +65,7 @@ export default function EvaluateSubmission() {
         return;
       }
 
-      await api.post(`/api/submissions/evaluate`, {
+      await axios.post(`${BASE_URL}/api/submissions/evaluate`, {
         submissionId,
         marks: Number(marks[submissionId]),
         feedback: feedback[submissionId] || "",
@@ -69,7 +73,7 @@ export default function EvaluateSubmission() {
 
       alert("Evaluation submitted 🚀");
 
-      // ✅ Update UI instantly
+      // update UI instantly
       setSubmissions((prev) =>
         prev.map((s) =>
           s._id === submissionId
@@ -95,8 +99,6 @@ export default function EvaluateSubmission() {
     return (
       <div className="page">
         ❌ No submissions found
-        <br />
-        <small>Check assignment ID or backend</small>
       </div>
     );
   }
@@ -116,7 +118,7 @@ export default function EvaluateSubmission() {
 
           {s.file && (
             <a
-              href={`https://smart-backend-2zlf.onrender.com/uploads/${s.file}`}
+              href={`${BASE_URL}/uploads/${s.file}`}
               target="_blank"
               rel="noreferrer"
             >
@@ -124,7 +126,6 @@ export default function EvaluateSubmission() {
             </a>
           )}
 
-          {/* MARKS */}
           <input
             type="number"
             placeholder="Marks"
@@ -137,7 +138,6 @@ export default function EvaluateSubmission() {
             }
           />
 
-          {/* FEEDBACK */}
           <textarea
             placeholder="Feedback"
             value={feedback[s._id] || ""}
@@ -149,7 +149,6 @@ export default function EvaluateSubmission() {
             }
           />
 
-          {/* BUTTON */}
           <button
             onClick={() => handleSubmit(s._id)}
             disabled={s.status === "evaluated"}
