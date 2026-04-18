@@ -6,16 +6,21 @@ export default function EvaluatePanel() {
   const [assignments, setAssignments] = useState([]);
   const navigate = useNavigate();
 
+  const API = "https://smart-backend-2zlf.onrender.com";
+
   useEffect(() => {
     const fetchAssignments = async () => {
       try {
-        const res = await axios.get(
-          "http://localhost:5000/api/assignments"
-        );
+        const res = await axios.get(`${API}/api/assignments`);
 
-        setAssignments(res.data.data || []);
+        const data = Array.isArray(res.data)
+          ? res.data
+          : res.data?.data || [];
+
+        setAssignments(data);
       } catch (err) {
-        console.log(err);
+        console.log("Fetch error:", err);
+        setAssignments([]);
       }
     };
 
