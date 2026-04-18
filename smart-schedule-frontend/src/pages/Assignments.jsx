@@ -20,33 +20,40 @@ function Assignments() {
 
   const userId = user?._id;
 
-  // ================= FETCH ASSIGNMENTS =================
+  // ================= FETCH DATA =================
   const fetchAssignments = useCallback(async () => {
     try {
       setLoading(true);
 
-      const res = await api.get("/api/assignments");
-      const data = res.data?.data || [];
+      if (!userId) {
+        console.warn("No user found");
+        return;
+      }
 
-      console.log("Assignments API:", data);
+      const [assignRes, subRes] = await Promise.all([
+        api.get("/api/assignments"),
+        api.get(`/api/submissions/student/${userId}`),
+      ]);
 
-      setAssignments(data);
+      const assignmentsData = assignRes.data?.data || [];
+      const submissionsData = subRes.data?.data || [];
 
+      console.log("Assignments:", assignmentsData);
+      console.log("Submissions:", submissionsData);
+
+      setAssignments(assignmentsData);
+
+      // ✅ BUILD SUBMISSION MAP
       const map = {};
 
-      data.forEach((a) => {
-        const submissions = Array.isArray(a?.submissions)
-          ? a.submissions
-          : [];
-
-        if (userId) {
-          map[a._id] = submissions.some(
-            (s) => s?.studentId?._id === userId // ✅ FIXED
-          );
-        }
+      assignmentsData.forEach((a) => {
+        map[a._id] = submissionsData.some(
+          (s) => s.assignmentId === a._id
+        );
       });
 
       setSubmittedMap(map);
+
     } catch (err) {
       console.error("Fetch error:", err);
       setAssignments([]);
@@ -82,7 +89,6 @@ function Assignments() {
     if (!file) return alert("Select file first");
     if (!userId) return alert("User not found");
 
-    // ✅ Prevent duplicate submission
     if (submittedMap[assignment._id]) {
       return alert("Already submitted");
     }
@@ -97,13 +103,14 @@ function Assignments() {
     try {
       await api.post("/api/assignments/submit", formData);
 
-      // ✅ instant UI update
+      // ✅ update UI instantly
       setSubmittedMap((prev) => ({
         ...prev,
         [assignment._id]: true,
       }));
 
       alert("Submitted Successfully 🚀");
+
     } catch (err) {
       console.error("Submit error:", err);
       alert("Submission Failed");
@@ -147,7 +154,7 @@ function Assignments() {
                   ⏳ {getTimeLeft(a.deadline)}
                 </p>
 
-                {/* ================= STATUS ================= */}
+                {/* STATUS */}
                 {expired ? (
                   <p className="closed">🔒 Closed</p>
                 ) : submitted ? (
