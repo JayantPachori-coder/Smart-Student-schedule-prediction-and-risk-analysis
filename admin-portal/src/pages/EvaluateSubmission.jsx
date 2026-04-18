@@ -15,7 +15,7 @@ export default function EvaluateSubmission() {
   const [loading, setLoading] = useState(true);
 
   /* =========================
-     FETCH SINGLE SUBMISSION
+     FETCH SUBMISSION
   ========================= */
   useEffect(() => {
     const fetchSubmission = async () => {
@@ -41,7 +41,7 @@ export default function EvaluateSubmission() {
   ========================= */
   const handleSubmit = async () => {
     try {
-      if (!marks) {
+      if (!marks.toString().trim()) {
         alert("Please enter marks");
         return;
       }
@@ -49,7 +49,7 @@ export default function EvaluateSubmission() {
       await axios.post(`${API}/api/submissions/evaluate`, {
         submissionId: id,
         marks: Number(marks),
-        feedback,
+        feedback: feedback.trim(),
       });
 
       alert("Evaluation submitted successfully 🚀");
@@ -77,7 +77,7 @@ export default function EvaluateSubmission() {
   return (
     <div className="page eval-grid">
 
-      {/* LEFT PANEL */}
+      {/* LEFT SIDE */}
       <div className="card glass">
         <h2>📄 Submission Details</h2>
 
@@ -97,7 +97,7 @@ export default function EvaluateSubmission() {
         </p>
 
         <p>
-          <b>Status:</b> {submission?.status}
+          <b>Status:</b> {submission?.status || "submitted"}
         </p>
 
         {submission?.file && (
@@ -111,7 +111,7 @@ export default function EvaluateSubmission() {
         )}
       </div>
 
-      {/* RIGHT PANEL */}
+      {/* RIGHT SIDE */}
       <div className="card glass">
         <h2>🧑‍🏫 Evaluate Submission</h2>
 
@@ -120,6 +120,8 @@ export default function EvaluateSubmission() {
           placeholder="Enter marks (out of 100)"
           value={marks}
           onChange={(e) => setMarks(e.target.value)}
+          min="0"
+          max="100"
         />
 
         <textarea
