@@ -11,7 +11,7 @@ import scheduleRoutes from "./routes/scheduleRoutes.js";
 import riskRoutes from "./routes/riskRoutes.js";
 import assignmentRoutes from "./routes/assignmentRoute.js";
 import teacherAuth from "./routes/teacherAuth.js";
-import submissionRoutes from "./routes/submissionRoutes.js"; // ✅ IMPORTANT FIX
+import submissionRoutes from "./routes/SubmissionRoutes.js"; // ✅ IMPORTANT FIX
 
 dotenv.config();
 
