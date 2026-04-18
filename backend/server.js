@@ -91,7 +91,7 @@ app.use((err, req, res, next) => {
 /* =========================
    START SERVER
 ========================= */
-const PORT = process.env.PORT || 5000;
+const PORT = "https://smart-backend-2zlf.onrender.com" || 5000;
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
