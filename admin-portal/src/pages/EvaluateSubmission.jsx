@@ -1,5 +1,3 @@
-// ✅ ONLY ONE default export
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
@@ -7,37 +5,46 @@ import "./Evaluation.css";
 
 const API = "https://smart-backend-2zlf.onrender.com";
 
-function EvaluateSubmission() {
+export default function EvaluateSubmission() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [data, setData] = useState(null);
+  const [submission, setSubmission] = useState(null);
   const [marks, setMarks] = useState("");
   const [feedback, setFeedback] = useState("");
   const [loading, setLoading] = useState(true);
 
+  /* =========================
+     FETCH SINGLE SUBMISSION
+  ========================= */
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchSubmission = async () => {
       try {
         setLoading(true);
 
         const res = await axios.get(`${API}/api/submissions/${id}`);
 
-        setData(res?.data?.data || null);
+        setSubmission(res?.data?.data || null);
       } catch (err) {
-        console.error(err);
-        setData(null);
+        console.error("Error fetching submission:", err);
+        setSubmission(null);
       } finally {
         setLoading(false);
       }
     };
 
-    if (id) fetchData();
+    if (id) fetchSubmission();
   }, [id]);
 
-  const submit = async () => {
+  /* =========================
+     SUBMIT EVALUATION
+  ========================= */
+  const handleSubmit = async () => {
     try {
-      if (!marks) return alert("Enter marks");
+      if (!marks) {
+        alert("Please enter marks");
+        return;
+      }
 
       await axios.post(`${API}/api/submissions/evaluate`, {
         submissionId: id,
@@ -45,63 +52,87 @@ function EvaluateSubmission() {
         feedback,
       });
 
-      alert("Evaluation Done 🚀");
+      alert("Evaluation submitted successfully 🚀");
       navigate(-1);
     } catch (err) {
-      console.error(err);
-      alert("Error evaluating submission");
+      console.error("Evaluation error:", err);
+      alert("Failed to submit evaluation");
     }
   };
 
-  if (loading) return <div className="page">Loading...</div>;
-  if (!data) return <div className="page">Not found ❌</div>;
+  /* =========================
+     LOADING STATE
+  ========================= */
+  if (loading) {
+    return <div className="page">Loading submission...</div>;
+  }
 
+  if (!submission) {
+    return <div className="page">Submission not found ❌</div>;
+  }
+
+  /* =========================
+     UI
+  ========================= */
   return (
     <div className="page eval-grid">
 
+      {/* LEFT PANEL */}
       <div className="card glass">
-        <h2>📄 Submission</h2>
+        <h2>📄 Submission Details</h2>
 
         <p>
-          <b>Student:</b> {data?.studentId?.firstName}
+          <b>Student:</b>{" "}
+          {submission?.studentId?.firstName || "Unknown"}
         </p>
 
         <p>
-          <b>Assignment:</b> {data?.assignmentId?.title}
+          <b>Email:</b>{" "}
+          {submission?.studentId?.email || "N/A"}
         </p>
 
-        {data?.file && (
+        <p>
+          <b>Assignment:</b>{" "}
+          {submission?.assignmentId?.title || "N/A"}
+        </p>
+
+        <p>
+          <b>Status:</b> {submission?.status}
+        </p>
+
+        {submission?.file && (
           <a
-            href={`${API}/uploads/${data.file}`}
+            href={`${API}/uploads/${submission.file}`}
             target="_blank"
             rel="noreferrer"
           >
-            Download File
+            ⬇ Download Submitted File
           </a>
         )}
       </div>
 
+      {/* RIGHT PANEL */}
       <div className="card glass">
-        <h2>Evaluate</h2>
+        <h2>🧑‍🏫 Evaluate Submission</h2>
 
         <input
           type="number"
+          placeholder="Enter marks (out of 100)"
           value={marks}
           onChange={(e) => setMarks(e.target.value)}
-          placeholder="Marks"
         />
 
         <textarea
+          placeholder="Write feedback for student..."
           value={feedback}
           onChange={(e) => setFeedback(e.target.value)}
-          placeholder="Feedback"
         />
 
-        <button onClick={submit}>Submit</button>
+        <button onClick={handleSubmit}>
+          Submit Evaluation 🚀
+        </button>
       </div>
 
     </div>
   );
 }
-
-export default EvaluateSubmission;
