@@ -6,8 +6,9 @@ export default function ViewAssignments() {
   const [assignments, setAssignments] = useState([]);
   const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(true);
-
   const [editing, setEditing] = useState(null);
+
+  const API = "https://smart-backend-2zlf.onrender.com";
 
   const [editForm, setEditForm] = useState({
     title: "",
@@ -24,7 +25,7 @@ export default function ViewAssignments() {
     try {
       setLoading(true);
 
-      const res = await axios.get("http://localhost:5000/api/assignments");
+      const res = await axios.get(`${API}/api/assignments`);
 
       const data = Array.isArray(res.data)
         ? res.data
@@ -42,18 +43,21 @@ export default function ViewAssignments() {
   // ================= DELETE =================
   const deleteAssignment = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/assignments/${id}`);
+      await axios.delete(`${API}/api/assignments/${id}`);
 
-      setAssignments((prev) => prev.filter((a) => a._id !== id));
+      setAssignments((prev) =>
+        prev.filter((a) => a._id !== id)
+      );
     } catch (err) {
       console.error("DELETE ERROR:", err);
       alert("Delete failed");
     }
   };
 
-  // ================= EDIT OPEN =================
+  // ================= OPEN EDIT =================
   const openEdit = (a) => {
     setEditing(a._id);
+
     setEditForm({
       title: a.title || "",
       description: a.description || "",
@@ -67,7 +71,7 @@ export default function ViewAssignments() {
   const updateAssignment = async () => {
     try {
       const res = await axios.put(
-        `http://localhost:5000/api/assignments/${editing}`,
+        `${API}/api/assignments/${editing}`,
         {
           title: editForm.title,
           description: editForm.description,
@@ -78,7 +82,9 @@ export default function ViewAssignments() {
       const updated = res.data?.data;
 
       setAssignments((prev) =>
-        prev.map((a) => (a._id === editing ? updated : a))
+        prev.map((a) =>
+          a._id === editing ? updated : a
+        )
       );
 
       setEditing(null);
@@ -128,14 +134,11 @@ export default function ViewAssignments() {
             </div>
 
             <div className="actions">
-              <button type="button" onClick={() => openEdit(a)}>
+              <button onClick={() => openEdit(a)}>
                 Edit
               </button>
 
-              <button
-                type="button"
-                onClick={() => deleteAssignment(a._id)}
-              >
+              <button onClick={() => deleteAssignment(a._id)}>
                 Delete
               </button>
             </div>
@@ -144,7 +147,7 @@ export default function ViewAssignments() {
       </div>
 
       {/* MODAL */}
-      {editing !== null && (
+      {editing && (
         <div className="modal">
           <div className="modal-content">
             <h3>Edit Assignment</h3>
@@ -152,7 +155,10 @@ export default function ViewAssignments() {
             <input
               value={editForm.title}
               onChange={(e) =>
-                setEditForm({ ...editForm, title: e.target.value })
+                setEditForm({
+                  ...editForm,
+                  title: e.target.value,
+                })
               }
               placeholder="Title"
             />
@@ -180,7 +186,9 @@ export default function ViewAssignments() {
             />
 
             <div className="modal-actions">
-              <button onClick={updateAssignment}>Update</button>
+              <button onClick={updateAssignment}>
+                Update
+              </button>
               <button onClick={() => setEditing(null)}>
                 Cancel
               </button>
