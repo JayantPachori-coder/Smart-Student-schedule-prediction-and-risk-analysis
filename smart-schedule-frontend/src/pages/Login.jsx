@@ -71,12 +71,6 @@ function Login() {
             {loading ? "Logging in..." : "Login"}
           </button>
 
-          {/* ✅ Removed Google Login */}
-
-          <p onClick={() => navigate("/forgot-password")} className="link">
-            Forgot Password?
-          </p>
-
           <p onClick={() => navigate("/register")} className="link">
             New User? Register
           </p>
